@@ -81,7 +81,7 @@ export function MagneticCursor({
 
   const isExpanded = hoveredSection !== null;
   const ringColor = hoveredSection?.accent ?? '#fff1ee';
-  const targetScale = pressed ? 0.84 : isExpanded ? 1.85 : 1;
+  const targetScale = pressed ? 0.84 : isExpanded ? 1.45 : 1;
 
   return (
     <div
