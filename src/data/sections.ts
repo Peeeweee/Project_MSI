@@ -4,6 +4,13 @@ export type SectionId =
   | 'hypobranchial'
   | 'branchiomeric';
 
+export interface SectionSubZone {
+  readonly id: string;
+  readonly label: string;
+  /** Target [x1, y1, x2, y2] in 2403x1540 poster space */
+  readonly bbox: readonly [number, number, number, number];
+}
+
 export interface Section {
   id: SectionId;
   n: 1 | 2 | 3 | 4;
@@ -25,16 +32,18 @@ export interface Section {
   /** Visual centroid [x, y] inside the polygon for keyboard focus badge placement */
   anchor: readonly [number, number];
   summary: string;
+  /** Quick focus sub-zones for effortless classroom navigation of dense or tall sections */
+  subZones: readonly SectionSubZone[];
 }
 
 export const WORLD_WIDTH = 2403;
 export const WORLD_HEIGHT = 1540;
 
 /** Responsive display artwork (2400w / 1200w) for crisp fast initial paint */
-export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=3';
-export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=3';
-/** Full 5560x3563 master artwork loaded lazily only on deep zoom */
-export const FULL_MAP_SRC = './assets/map-full.jpg?v=3';
+export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=4';
+export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=4';
+/** Full 5560x3563 master artwork loaded lazily on zoom */
+export const FULL_MAP_SRC = './assets/map-full.jpg?v=4';
 
 export const SECTIONS: readonly Section[] = [
   {
@@ -44,7 +53,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Hanami',
     fullName: 'Hanna Mae M. Ceniza',
     crop: 'axial.jpg',
-    cropSrc: './assets/axial.jpg?v=3',
+    cropSrc: './assets/axial.jpg?v=4',
     accent: '#2563eb',
     badgeText: '#fff1ee',
     bbox: [0, 802, 1172, 1540],
@@ -52,6 +61,12 @@ export const SECTIONS: readonly Section[] = [
     anchor: [586, 1170],
     summary:
       'Segmented myomeres, epaxial (dorsal) and hypaxial (ventral body-wall layers including birds), and the axial pectoral sling.',
+    subZones: [
+      { id: 'axial-myo', label: 'Myomeres', bbox: [15, 815, 845, 1150] },
+      { id: 'axial-epax', label: 'Epaxial', bbox: [460, 1085, 1172, 1345] },
+      { id: 'axial-hypax', label: 'Hypaxial & Birds', bbox: [8, 1210, 650, 1538] },
+      { id: 'axial-sling', label: 'Axial Sling', bbox: [615, 1280, 1075, 1538] },
+    ],
   },
   {
     id: 'appendicular',
@@ -60,7 +75,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=3',
+    cropSrc: './assets/appendicular.jpg?v=4',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
@@ -68,6 +83,11 @@ export const SECTIONS: readonly Section[] = [
     anchor: [520, 400],
     summary:
       'Pectoral (4-source) & pelvic (3-source) girdle/limb musculature, embryonic development, and tetrapod specializations (saltatorial, flight, cursorial).',
+    subZones: [
+      { id: 'append-fins', label: 'Fins & Dev', bbox: [0, 0, 1038, 250] },
+      { id: 'append-pect', label: 'Pectoral & Pelvic', bbox: [0, 175, 760, 625] },
+      { id: 'append-spec', label: 'Specializations', bbox: [0, 560, 745, 802] },
+    ],
   },
   {
     id: 'hypobranchial',
@@ -76,7 +96,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Reymark',
     fullName: 'Reymark P. Villarosa',
     crop: 'hypobranchial.jpg',
-    cropSrc: './assets/hypobranchial.jpg?v=3',
+    cropSrc: './assets/hypobranchial.jpg?v=4',
     accent: '#7c3aed',
     badgeText: '#fff1ee',
     bbox: [1040, 0, 2006, 802],
@@ -84,6 +104,10 @@ export const SECTIONS: readonly Section[] = [
     anchor: [1450, 365],
     summary:
       'Tongue musculature; somitic throat development, cervical spinal innervation, position & function, and comparative vertebrate pattern.',
+    subZones: [
+      { id: 'hypo-comp', label: 'Comparative Pattern', bbox: [1040, 0, 1940, 225] },
+      { id: 'hypo-inn', label: 'Innervation & Dev', bbox: [1040, 160, 2005, 560] },
+    ],
   },
   {
     id: 'branchiomeric',
@@ -92,7 +116,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Kurt',
     fullName: 'Kurt Hendrick P. Saromines',
     crop: 'branchiomeric.jpg',
-    cropSrc: './assets/branchiomeric.jpg?v=3',
+    cropSrc: './assets/branchiomeric.jpg?v=4',
     accent: '#d97706',
     badgeText: '#160303',
     bbox: [1172, 0, 2403, 1540],
@@ -101,6 +125,11 @@ export const SECTIONS: readonly Section[] = [
     anchor: [1920, 1080],
     summary:
       'Derived from the pharyngeal arches: mandibular, hyoid and branchial arches (cucullaris & facial muscles), plus extrinsic eye muscles (CN III, IV, VI).',
+    subZones: [
+      { id: 'branch-eye', label: 'Extrinsic Eye', bbox: [1790, 0, 2403, 590] },
+      { id: 'branch-mand', label: 'Mandibular Arch', bbox: [1640, 560, 2403, 1150] },
+      { id: 'branch-hyoid', label: 'Hyoid & Branchial', bbox: [1172, 1040, 2403, 1540] },
+    ],
   },
 ] as const;
 
