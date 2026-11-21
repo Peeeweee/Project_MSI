@@ -1,0 +1,19 @@
+# Dependencies & build output
+node_modules/
+dist/
+dist-ssr/
+
+# Local environment & logs
+*.local
+npm-debug.log*
+
+# Raw source poster masters (optimized variants live in public/assets/)
+CVA-Muscular System*.png
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
