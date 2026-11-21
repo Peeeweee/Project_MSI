@@ -100,18 +100,17 @@ export function clampCamera(
 }
 
 /**
- * Computes the camera transform that fits a section's bbox cleanly into the
- * open stage area to the right of the 330px desktop sidebar (or above the
- * mobile bottom sheet) with comfortable padding.
+ * Computes the camera transform that fits any arbitrary world-space bbox
+ * ([x1, y1, x2, y2]) cleanly into the open TV/viewport stage area.
  */
-export function computeSectionCamera(
-  section: Section,
+export function computeBboxCamera(
+  bbox: readonly [number, number, number, number],
   viewport: ViewportSize,
   hudVisible: boolean,
   sidebarCollapsed = true,
 ): CameraState {
   const { fitScale } = computeBaseMetrics(viewport);
-  const [x1, y1, x2, y2] = section.bbox;
+  const [x1, y1, x2, y2] = bbox;
 
   const boxWidthWorld = x2 - x1;
   const boxHeightWorld = y2 - y1;
@@ -125,14 +124,14 @@ export function computeSectionCamera(
   const isCompact = viewport.width < DESKTOP_BREAKPOINT;
   const padLeft = sidebarInset > 0 ? sidebarInset + 14 : 12;
   const padRight = isCompact ? 12 : 16;
-  const padTop = hudVisible ? (isCompact ? 48 : 44) : 12;
-  const padBottom = hudVisible ? (isCompact ? 86 : 16) : 12;
+  const padTop = hudVisible ? (isCompact ? 14 : 14) : 10;
+  const padBottom = hudVisible ? (isCompact ? 86 : 46) : 10;
 
   const availW = Math.max(140, viewport.width - padLeft - padRight);
   const availH = Math.max(140, viewport.height - padTop - padBottom);
 
   const idealScale = Math.min(availW / boxWidthBase, availH / boxHeightBase);
-  const scale = clamp(idealScale, 1.12, MAX_SCALE);
+  const scale = clamp(idealScale, 0.85, MAX_SCALE);
 
   const dxBase = (boxCenterX - WORLD_WIDTH / 2) * fitScale;
   const dyBase = (boxCenterY - WORLD_HEIGHT / 2) * fitScale;
@@ -144,6 +143,20 @@ export function computeSectionCamera(
   const rawY = -dyBase * scale + visualBiasY;
 
   return { x: rawX, y: rawY, scale };
+}
+
+/**
+ * Computes the camera transform that fits a section's bbox cleanly into the
+ * open stage area to the right of the minimized desktop rail (or above the
+ * mobile bottom sheet) with maximum TV visibility.
+ */
+export function computeSectionCamera(
+  section: Section,
+  viewport: ViewportSize,
+  hudVisible: boolean,
+  sidebarCollapsed = true,
+): CameraState {
+  return computeBboxCamera(section.bbox, viewport, hudVisible, sidebarCollapsed);
 }
 
 /**
@@ -179,8 +192,8 @@ export function clampCameraToSection(
 
   const openLeft = sidebarInset > 0 ? sidebarInset + 12 : 10;
   const openRight = viewport.width - (isCompact ? 10 : 14);
-  const openTop = hudVisible ? (isCompact ? 46 : 42) : 10;
-  const openBottom = viewport.height - (hudVisible && isCompact ? 82 : 14);
+  const openTop = hudVisible ? 12 : 10;
+  const openBottom = viewport.height - (hudVisible ? (isCompact ? 82 : 44) : 10);
 
   const openW = Math.max(120, openRight - openLeft);
   const openH = Math.max(120, openBottom - openTop);
