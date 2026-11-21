@@ -242,6 +242,7 @@ export function InteractiveOverlay({
               }}
               onClick={(e: MouseEvent<SVGPolygonElement>) => {
                 if (isCurrentActive) return;
+                e.stopPropagation();
                 onSelectSection(section.id, { x: e.clientX, y: e.clientY });
               }}
               onKeyDown={(e) => handleKeyDown(e, section.id)}
