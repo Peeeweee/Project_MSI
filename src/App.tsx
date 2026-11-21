@@ -27,7 +27,7 @@ function preloadThreeDAssets() {
   void fetch('./models/muscles.glb', { priority: 'low' as RequestPriority }).catch(() => {});
 }
 import { SectionSidebar } from './components/hud/SectionSidebar';
-import { SummaryCard } from './components/hud/SummaryCard';
+import { SectionNavPad } from './components/hud/SectionNavPad';
 import { HoverTooltip } from './components/hud/HoverTooltip';
 import { MagneticCursor } from './components/hud/MagneticCursor';
 import { ClickRipple, type ClickRippleItem } from './components/hud/ClickRipple';
@@ -105,6 +105,8 @@ export default function App() {
     prev: rawPrev,
     resetSectionView,
     zoomByFactor,
+    panBy,
+    focusBbox,
     getLiveCamera,
   } = camera;
 
@@ -430,16 +432,84 @@ export default function App() {
           goOverview();
           break;
         }
-        case 'ArrowRight':
-        case 'ArrowDown': {
+        case 'ArrowRight': {
           e.preventDefault();
-          next();
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            panBy(-220, 0);
+          } else {
+            next();
+          }
           break;
         }
-        case 'ArrowLeft':
+        case 'ArrowLeft': {
+          e.preventDefault();
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            panBy(220, 0);
+          } else {
+            prev();
+          }
+          break;
+        }
+        case 'ArrowDown': {
+          e.preventDefault();
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            panBy(0, -220);
+          } else {
+            next();
+          }
+          break;
+        }
         case 'ArrowUp': {
           e.preventDefault();
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            panBy(0, 220);
+          } else {
+            prev();
+          }
+          break;
+        }
+        case 'w':
+        case 'W': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            panBy(0, 220);
+          }
+          break;
+        }
+        case 's':
+        case 'S': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            panBy(0, -220);
+          }
+          break;
+        }
+        case 'a':
+        case 'A': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            panBy(220, 0);
+          }
+          break;
+        }
+        case 'd':
+        case 'D': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            panBy(-220, 0);
+          }
+          break;
+        }
+        case '[':
+        case 'PageUp': {
+          e.preventDefault();
           prev();
+          break;
+        }
+        case ']':
+        case 'PageDown': {
+          e.preventDefault();
+          next();
           break;
         }
         case '+':
@@ -493,6 +563,7 @@ export default function App() {
     handleChangeViewMode,
     introActive,
     next,
+    panBy,
     prev,
     shortcutsOpen,
     triggerRippleAndGo,
@@ -632,15 +703,15 @@ export default function App() {
                 onHoverSound={handleHoverSound}
               />
 
-              {/* Layer 3: Floating glass summary card with 3D specular tilt & foreground parallax */}
-              <SummaryCard
+              {/* Compact bottom sub-zone switcher & 4-way arrow pan D-pad */}
+              <SectionNavPad
                 section={activeSection}
                 visible={hudVisible && sidebarVisible}
                 sidebarCollapsed={sidebarCollapsed}
-                cardTiltEnabled={effects.cardTilt}
-                depthX={depth.nx}
-                depthY={depth.ny}
-                parallaxEnabled={effects.parallax}
+                isCustomView={isCustomView}
+                onPan={panBy}
+                onFocusBbox={focusBbox}
+                onResetView={resetSectionView}
               />
             </motion.div>
           ) : (
