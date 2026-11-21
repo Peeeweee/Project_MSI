@@ -11,14 +11,16 @@ interface ShortcutsOverlayProps {
 
 const SHORTCUTS = [
   { keys: ['1', '2', '3', '4'], label: 'Jump to Axial, Appendicular, Hypobranchial, or Branchiomeric' },
-  { keys: ['←', '→'], label: 'Cycle previous / next presenter section' },
+  { keys: ['↑', '↓', '←', '→'], label: 'Pan smoothly up, down, left, or right inside zoomed section' },
+  { keys: ['W', 'A', 'S', 'D'], label: 'Alternate directional pan keys while zoomed in' },
+  { keys: ['Click'], label: 'Zoom directly into the clicked diagram (or reset when deep-zoomed)' },
+  { keys: ['[', ']'], label: 'Cycle previous / next presenter section' },
   { keys: ['Esc', '0'], label: 'Return to full edge-to-edge overview' },
   { keys: ['+', '−'], label: 'Zoom in / zoom out smoothly' },
   { keys: ['Scroll'], label: 'Zoom around cursor position' },
   { keys: ['Drag'], label: 'Pan freely while zoomed in' },
-  { keys: ['Double-Click'], label: 'Quick zoom into point or reset' },
   { keys: ['V'], label: 'Switch between Poster Mode and 3D Visual Model' },
-  { keys: ['F'], label: 'Spotlight isolate active section' },
+  { keys: ['F'], label: 'Toggle decolorized emphasis on surrounding sections' },
   { keys: ['H'], label: 'Toggle clean presentation mode (hide HUD)' },
 ];
 
