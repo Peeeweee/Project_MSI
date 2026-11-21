@@ -21,12 +21,12 @@ interface HoverTooltipProps {
   cardTiltEnabled: boolean;
 }
 
-const FOLLOW_SPRING = { stiffness: 250, damping: 24, mass: 0.72 };
-const TILT_SPRING = { stiffness: 180, damping: 20, mass: 0.65 };
+const FOLLOW_SPRING = { stiffness: 320, damping: 26, mass: 0.55 };
+const TILT_SPRING = { stiffness: 210, damping: 22, mass: 0.55 };
 
 /**
- * Floating tooltip card attached to the cursor with spring-lag follow and
- * velocity-coupled 3D tilt toward the cursor movement direction.
+ * Compact, modern floating capsule tooltip attached to the cursor with
+ * spring-lag follow, subtle accent aura, and velocity-coupled 3D micro-tilt.
  */
 export function HoverTooltip({
   section,
@@ -40,16 +40,16 @@ export function HoverTooltip({
 
   const visible = hudVisible && section !== null && position !== null;
 
-  const cardW = 244;
-  const cardH = 88;
-  const rawX = (position?.x ?? 0) + 22;
-  const rawY = (position?.y ?? 0) - cardH - 16;
+  const pillW = 210;
+  const pillH = 36;
+  const rawX = (position?.x ?? 0) + 16;
+  const rawY = (position?.y ?? 0) - pillH - 12;
 
-  const clampedX = clamp(rawX, 14, Math.max(14, viewport.width - cardW - 14));
+  const clampedX = clamp(rawX, 12, Math.max(12, viewport.width - pillW - 12));
   const clampedY =
-    rawY < 54
-      ? clamp((position?.y ?? 0) + 24, 54, Math.max(54, viewport.height - cardH - 18))
-      : clamp(rawY, 54, Math.max(54, viewport.height - cardH - 18));
+    rawY < 52
+      ? clamp((position?.y ?? 0) + 18, 52, Math.max(52, viewport.height - pillH - 14))
+      : clamp(rawY, 52, Math.max(52, viewport.height - pillH - 14));
 
   const targetX = useMotionValue(clampedX);
   const targetY = useMotionValue(clampedY);
@@ -57,14 +57,13 @@ export function HoverTooltip({
   const smoothX = useSpring(targetX, FOLLOW_SPRING);
   const smoothY = useSpring(targetY, FOLLOW_SPRING);
 
-  // 3D tilt toward cursor travel direction (derived from spring velocity)
   const vx = useVelocity(smoothX);
   const vy = useVelocity(smoothY);
 
-  const rawRotateY = useTransform(vx, [-1600, 0, 1600], [-14, 0, 14], {
+  const rawRotateY = useTransform(vx, [-1600, 0, 1600], [-10, 0, 10], {
     clamp: true,
   });
-  const rawRotateX = useTransform(vy, [-1600, 0, 1600], [12, 0, -12], {
+  const rawRotateX = useTransform(vy, [-1600, 0, 1600], [8, 0, -8], {
     clamp: true,
   });
 
@@ -81,7 +80,6 @@ export function HoverTooltip({
     TILT_SPRING,
   );
 
-  // Snap immediately on first appearance so card never flies in from (0,0)
   useEffect(() => {
     if (!visible) return;
     if (prefersReducedMotion) {
@@ -95,7 +93,6 @@ export function HoverTooltip({
     }
   }, [clampedX, clampedY, prefersReducedMotion, smoothX, smoothY, targetX, targetY, visible]);
 
-  // Snap starting coordinates when transitioning from hidden -> visible
   useEffect(() => {
     if (visible) {
       smoothX.jump(clampedX);
@@ -103,7 +100,6 @@ export function HoverTooltip({
       targetX.jump(clampedX);
       targetY.jump(clampedY);
     }
-    // Intentionally triggers only when visibility flips on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
@@ -118,9 +114,9 @@ export function HoverTooltip({
           <motion.div
             key="hover-tooltip-card"
             data-testid="hover-tooltip"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, scale: 0.88, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 2 }}
             transition={appearTransition}
             style={{
               x: smoothX,
@@ -129,55 +125,54 @@ export function HoverTooltip({
               rotateY,
               transformStyle: 'preserve-3d',
               willChange: 'transform, opacity',
+              borderColor: `${section.accent}66`,
+              boxShadow: `0 10px 26px -6px rgba(10, 1, 1, 0.72), 0 0 18px -4px ${section.accent}55, inset 0 1px 0 rgba(255, 241, 238, 0.14)`,
             }}
-            className="hud-glass fixed left-0 top-0 w-[244px] overflow-hidden rounded-2xl"
+            className="fixed left-0 top-0 inline-flex items-center gap-2 rounded-full border bg-[#190303]/90 py-1 pr-1.5 pl-1.5 backdrop-blur-md"
           >
-            {/* Subtle section accent strip */}
-            <div
-              className="h-[3px] w-full"
-              style={{ backgroundColor: section.accent }}
-            />
+            {/* Glowing round index badge */}
+            <span
+              className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10.5px] font-bold"
+              style={{
+                backgroundColor: section.accent,
+                color: section.badgeText,
+                boxShadow: `0 0 10px ${section.accent}80`,
+              }}
+            >
+              {section.n}
+            </span>
 
-            <div className="p-3">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="font-mono-num flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold shadow-sm"
-                  style={{
-                    backgroundColor: section.accent,
-                    color: section.badgeText,
-                    boxShadow: `0 0 14px ${section.accent}66`,
-                  }}
-                >
-                  {section.n}
-                </span>
-
-                <div className="min-w-0 leading-tight">
-                  <div className="font-display truncate text-[16px] font-semibold tracking-tight text-[#fff1ee]">
-                    {section.name}
-                  </div>
-                  <div className="mt-0.5 truncate text-[11px] font-medium text-[#ffd9d0]">
-                    Prepared by {section.owner}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-2.5 flex items-center justify-between border-t border-[#ffd9d0]/16 pt-2 text-[11px] font-semibold">
-                <span style={{ color: '#fff1ee' }}>Click to dive in</span>
-                <span
-                  className="inline-flex h-4 w-4 items-center justify-center rounded-full"
-                  style={{
-                    backgroundColor: section.accent,
-                    color: section.badgeText,
-                  }}
-                >
-                  <ArrowUpRight className="h-3 w-3" />
-                </span>
-              </div>
+            {/* Crisp inline title + presenter chip */}
+            <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="font-display text-[13px] font-semibold tracking-tight text-[#fff1ee]">
+                {section.name}
+              </span>
+              <span
+                aria-hidden="true"
+                className="text-[10px] text-[#ffd9d0]/40"
+              >
+                ·
+              </span>
+              <span className="text-[11px] font-medium text-[#ffd9d0]/80">
+                {section.owner}
+              </span>
             </div>
+
+            {/* Micro action pill */}
+            <span
+              className="ml-0.5 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide uppercase"
+              style={{
+                backgroundColor: `${section.accent}28`,
+                color: '#fff1ee',
+                border: `1px solid ${section.accent}55`,
+              }}
+            >
+              View
+              <ArrowUpRight className="h-2.5 w-2.5" />
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
-
