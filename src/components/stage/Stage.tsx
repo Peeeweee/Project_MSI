@@ -97,6 +97,7 @@ export function Stage({
     rotateY: cameraRotateY,
     stageOpacity,
     activeSection,
+    isTransitioning,
     phase,
     lockingSectionId,
     cropRevealed,
@@ -129,8 +130,8 @@ export function Stage({
     }
   }, [displaySrc]);
 
-  // Upgrade lazily from 2400w display artwork to full 5560w master on zoom (>= 1.6x)
-  const isDeepZoom = camera.camera.scale >= 1.6;
+  // Upgrade lazily from 2400w display artwork to full 5560x3563 master as soon as user enters a section or zooms
+  const isDeepZoom = activeSectionId !== null || camera.camera.scale >= 1.05;
   useEffect(() => {
     if (!isDeepZoom || hiResFullReady) return;
     preloadHiResFullMap(() => setHiResFullReady(true));
@@ -384,9 +385,12 @@ export function Stage({
     [onSelectSection],
   );
 
-  const handleDoubleClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+  const handleStageClick = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (activeSectionId === null) return;
-
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
@@ -432,15 +436,17 @@ export function Stage({
           ? undefined
           : isDragging
             ? 'grabbing'
-            : isPanningAllowed
-              ? 'grab'
-              : 'default',
+            : activeSectionId !== null && !camera.isCustomView
+              ? 'zoom-in'
+              : isPanningAllowed
+                ? 'grab'
+                : 'default',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUpOrCancel}
       onPointerCancel={handlePointerUpOrCancel}
-      onDoubleClick={handleDoubleClick}
+      onClick={handleStageClick}
     >
       {/* Intro 3D lift wrapper: fades up cleanly from a rotated 3D tilt during the 2s micro-intro */}
       <motion.div
@@ -472,7 +478,8 @@ export function Stage({
             rotateY: combinedRotateY,
             opacity: stageOpacity,
             transformOrigin: '50% 50%',
-            willChange: 'transform',
+            // Release will-change once settled so Chromium re-rasterizes at full native 5560x3563 sharpness!
+            willChange: isTransitioning || isDragging ? 'transform' : 'auto',
           }}
         >
           {/* Page-load skeleton: blurred low-res LQIP that sharpens smoothly into full image */}
