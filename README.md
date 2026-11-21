@@ -1,4 +1,6 @@
-# CVA — Muscular System Interactive Dashboard
+# Project MSI — CVA Muscular System Interactive Dashboard
+
+Live Demo: **[Project MSI](https://peeeweee.github.io/Project_MSI/)**
 
 An interactive comparative vertebrate anatomy concept-map & realistic 3D muscular explorer built with **Vite + React + TypeScript + Tailwind CSS + Framer Motion + Three.js (`@react-three/fiber` / `@react-three/drei`)**.
 
@@ -39,12 +41,14 @@ Pre-configured for zero-config static deployment to **Vercel** (`vercel.json`) a
 ## Keyboard & Presentation Controls
 
 - **`1`–`4`**: Lock on and fly into Axial, Appendicular, Hypobranchial, or Branchiomeric
-- **`←` / `→`**: 3D carousel pan-through to Previous / Next section
+- **`↑` / `↓` / `←` / `→` (or `W` / `A` / `S` / `D`)**: Smooth directional panning inside any zoomed section (plus on-screen bottom-right D-pad & quick sub-zone jump pills)
+- **`Click`**: Zoom directly into the clicked diagram inside an active section (or reset when deep-zoomed)
+- **`[` / `]`**: 3D carousel pan-through to Previous / Next section
 - **`Esc` / `0`**: Reverse zoom out to full overview
 - **`+` / `−` / Scroll**: Smooth cursor-anchored zoom
 - **`Drag` / Pinch**: Free pan & touch zoom when zoomed in
-- **`V`**: Toggle smoothly between **Poster Mode** and **Realistic 3D Model Mode** (177 clickable muscles)
-- **`F`**: Toggle spotlight isolation on the active section
+- **`V`**: Toggle smoothly between **Poster Mode** and **Realistic 3D Model Mode** (9 interactive 3D vertebrates)
+- **`F`**: Toggle active-section color emphasis (decolorize non-active regions)
 - **`H`**: Toggle clean presentation mode (hide HUD)
 - **`?`**: Open navigation shortcuts overlay
 
