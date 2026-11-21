@@ -100,14 +100,24 @@ export function TopBar({
           title="Return to full overview (Esc)"
         >
           <span
-            className="h-2 w-2 shrink-0 rounded-full transition-colors"
+            className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg border transition-all duration-200 group-hover:scale-105"
             style={{
-              backgroundColor: activeSection ? activeSection.accent : '#ffd9d0',
+              borderColor: activeSection
+                ? `${activeSection.accent}cc`
+                : 'rgba(255, 217, 208, 0.35)',
               boxShadow: activeSection
-                ? `0 0 10px ${activeSection.accent}`
-                : '0 0 6px rgba(255, 217, 208, 0.5)',
+                ? `0 0 12px ${activeSection.accent}88`
+                : '0 0 8px rgba(255, 217, 208, 0.22)',
             }}
-          />
+          >
+            <img
+              src="./favicon.svg?v=5"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="h-full w-full select-none object-cover"
+            />
+          </span>
           <span className="font-display whitespace-nowrap text-[11px] font-semibold tracking-[0.04em] text-[#fff1ee] sm:text-[15px] sm:tracking-[0.14em]">
             MUSCULAR SYSTEM
           </span>
