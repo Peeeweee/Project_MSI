@@ -273,20 +273,12 @@ export function AnimalSpecimenScene({
       rigRef.current.rotation.y = (1 - p) * -0.18;
     }
 
-    // Gentle buoyant hover for swimming/flying specimens OR subtle breathing micro-motion for static lizards
+    // Gentle buoyant hover for swimming/flying specimens
     if (floatRef.current) {
       if (specimen.hoverHeight > 0 && isPlaying && !reducedMotion) {
         const t = state.clock.elapsedTime;
         floatRef.current.position.y = Math.sin(t * 1.4) * 0.09;
         floatRef.current.scale.set(1, 1, 1);
-      } else if (specimen.animations.length === 0 && isPlaying && !reducedMotion) {
-        const t = state.clock.elapsedTime;
-        floatRef.current.position.y = 0;
-        floatRef.current.scale.set(
-          1 + Math.sin(t * 2.0) * 0.014,
-          1 + Math.sin(t * 2.0) * 0.016,
-          1,
-        );
       } else {
         floatRef.current.position.y = THREE.MathUtils.damp(
           floatRef.current.position.y,
