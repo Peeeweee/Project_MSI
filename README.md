@@ -53,6 +53,7 @@ Pre-configured for zero-config static deployment to **Vercel** (`vercel.json`) a
 All 3D models in `public/models/` are sourced from open-source GitHub repositories:
 
 - **Human (`muscles.glb`)**: 177 named skeletal muscles from [organui/muscles-3d](https://github.com/organui/muscles-3d) (MIT code), adapted from **BodyParts3D** © The Database Center for Life Science (DBCLS), licensed under **CC BY-SA 2.1 Japan** (see `public/models/ATTRIBUTION.md`).
-- **Shark, Teleost Fish, Frog, & Crocodile (`shark.glb`, `teleost.glb`, `frog.glb`, `crocodile.glb`)**: Rigged & animated vertebrate models indexed via [lucas-martinic/polyfork-catalog](https://github.com/lucas-martinic/polyfork-catalog) (**Polyfork 3D**, CC BY 4.0).
-- **Bird & Ungulate (`parrot.glb`, `horse.glb`)**: Animated avian flight & cursorial ungulate gallop models from [mrdoob/three.js](https://github.com/mrdoob/three.js) examples (**MIT**).
+- **Shark, Teleost Fish, Frog, Crocodile, Dog & Horse (`shark.glb`, `teleost.glb`, `frog.glb`, `crocodile.glb`, `dog.glb`, `horse.glb`)**: Rigged & animated vertebrate models indexed via [lucas-martinic/polyfork-catalog](https://github.com/lucas-martinic/polyfork-catalog) (**Polyfork 3D**, CC BY 4.0).
+- **Lizard (`lizard.glb`)**: Realistic Komodo monitor lizard 3D model from [ThunderbearStudios/angband3d](https://github.com/ThunderbearStudios/angband3d) (GPL-2.0).
+- **Bird (`parrot.glb`)**: Animated avian flight model from [mrdoob/three.js](https://github.com/mrdoob/three.js) examples (**MIT**).
 
