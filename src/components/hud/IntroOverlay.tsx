@@ -90,6 +90,16 @@ export function IntroOverlay({ active, onComplete }: IntroOverlayProps) {
           transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-[#2b0606]/78 p-6 backdrop-blur-md"
         >
+          <motion.img
+            src="./favicon.svg?v=5"
+            alt=""
+            aria-hidden="true"
+            initial={{ opacity: 0, scale: 0.75, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="mb-3 h-12 w-12 rounded-2xl shadow-xl"
+          />
+
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
