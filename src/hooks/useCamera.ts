@@ -15,6 +15,7 @@ import {
 import {
   clampCamera,
   clampCameraToSection,
+  computeBboxCamera,
   computeSectionCamera,
   MAX_SCALE,
   OVERVIEW_CAMERA,
@@ -86,6 +87,10 @@ export interface UseCameraReturn {
   ) => void;
   zoomByFactor: (factor: number, localX?: number, localY?: number) => void;
   doubleClickZoomAt: (localX: number, localY: number) => void;
+  /** Smooth directional pan via arrow keys or on-screen D-pad (auto-zooms gently if at section fit) */
+  panBy: (dx: number, dy: number) => void;
+  /** Smoothly zooms to fit a specific sub-zone bbox inside the active section */
+  focusBbox: (bbox: readonly [number, number, number, number]) => void;
   setCameraImmediate: (next: CameraState) => void;
   glideWithInertia: (vx: number, vy: number) => void;
   settleCamera: (next?: CameraState) => void;
@@ -749,7 +754,87 @@ export function useCamera({
   );
 
   /**
-   * Double-click inside a zoomed section zooms smoothly into the clicked point
+   * Smooth directional pan for keyboard arrow keys (↑ ↓ ← →) and on-screen D-pad.
+   * Note: passing positive dy moves the viewport UP over the poster (revealing top
+   * details); negative dy moves the viewport DOWN (revealing lower details).
+   * If the section is still at full-fit scale with no pan slack, gently zooms in
+   * to a readable close-up while moving in the requested direction.
+   */
+  const panBy = useCallback(
+    (dx: number, dy: number) => {
+      const currentId = activeIdRef.current;
+      const live = targetRef.current;
+
+      if (!currentId) {
+        if (live.scale <= 1.02) return;
+        animateGestureTo({
+          x: live.x + dx,
+          y: live.y + dy,
+          scale: live.scale,
+        });
+        return;
+      }
+
+      const section = SECTION_BY_ID[currentId];
+      const fitCam = computeSectionCamera(
+        section,
+        viewportRef.current,
+        hudVisibleRef.current,
+        sidebarCollapsedRef.current,
+      );
+
+      // If still near section fit (e.g. tall Branchiomeric at ~1.08x), auto-zoom cleanly so arrow panning glides smoothly
+      const needsBoost = live.scale < Math.max(fitCam.scale * 1.25, 1.95);
+      const nextScale = needsBoost
+        ? Math.min(MAX_SCALE, Math.max(fitCam.scale * 1.45, 2.1))
+        : live.scale;
+
+      let baseX = live.x;
+      let baseY = live.y;
+      if (needsBoost) {
+        const vp = viewportRef.current;
+        const zoomed = zoomAroundScreenPoint(
+          live,
+          nextScale,
+          vp.width / 2,
+          vp.height / 2,
+          vp,
+          section,
+          hudVisibleRef.current,
+          sidebarCollapsedRef.current,
+        );
+        baseX = zoomed.x;
+        baseY = zoomed.y;
+      }
+
+      animateGestureTo({
+        x: baseX + dx,
+        y: baseY + dy,
+        scale: nextScale,
+      });
+    },
+    [animateGestureTo],
+  );
+
+  /**
+   * Smoothly focuses a specific sub-zone bbox (e.g. Branchiomeric Extrinsic Eye,
+   * Mandibular Arch, or Hyoid & Branchial) inside the active section.
+   */
+  const focusBbox = useCallback(
+    (bbox: readonly [number, number, number, number]) => {
+      const nextState = computeBboxCamera(
+        bbox,
+        viewportRef.current,
+        hudVisibleRef.current,
+        sidebarCollapsedRef.current,
+      );
+      animateGestureTo(nextState);
+    },
+    [animateGestureTo],
+  );
+
+  /**
+   * Click or double-click inside a zoomed section zooms smoothly into the clicked point
    * (or resets to the section's default fit if already deeply zoomed).
    */
   const doubleClickZoomAt = useCallback(
@@ -765,10 +850,10 @@ export function useCamera({
       );
       const live = getLiveCamera();
 
-      if (live.scale >= Math.min(MAX_SCALE - 0.3, fitCam.scale * 1.75)) {
+      if (live.scale >= Math.min(MAX_SCALE - 0.35, Math.max(fitCam.scale * 1.95, 3.2))) {
         resetSectionView();
       } else {
-        const targetScale = Math.min(MAX_SCALE, live.scale * 1.65);
+        const targetScale = Math.min(MAX_SCALE, Math.max(live.scale * 1.65, 2.35));
         zoomToScale(targetScale, localX, localY);
       }
     },
@@ -881,6 +966,8 @@ export function useCamera({
     zoomToScale,
     zoomByFactor,
     doubleClickZoomAt,
+    panBy,
+    focusBbox,
     setCameraImmediate,
     glideWithInertia,
     settleCamera,
