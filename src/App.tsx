@@ -826,6 +826,7 @@ export default function App() {
                 onFocusSectionKeyboard={handleAnchorHover}
                 onSelectSection={triggerRippleAndGo}
                 onSelectSubZone={goSubZone}
+                onFocusCardBbox={focusBbox}
               />
 
               {/* Phase 3 orchestrated minimized 56px rail / expandable 248px left sidebar */}

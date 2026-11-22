@@ -62,6 +62,7 @@ interface StageProps {
   onFocusSectionKeyboard: (section: Section | null) => void;
   onSelectSection: (id: SectionId, clickPoint?: { x: number; y: number }) => void;
   onSelectSubZone: (subZoneId: string | null) => void;
+  onFocusCardBbox?: (bbox: readonly [number, number, number, number]) => void;
 }
 
 interface ActivePointer {
@@ -97,6 +98,7 @@ export function Stage({
   onFocusSectionKeyboard,
   onSelectSection,
   onSelectSubZone,
+  onFocusCardBbox,
 }: StageProps) {
   const {
     x,
@@ -461,9 +463,8 @@ export function Stage({
     <main
       id="interactive-map"
       ref={stageRef}
-      className={`relative z-10 flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden ${
-        useCustomCursor ? 'magnetic-cursor-active' : ''
-      }`}
+      className={`relative z-10 flex min-h-0 flex-1 touch-none items-center justify-center overflow-hidden ${useCustomCursor ? 'magnetic-cursor-active' : ''
+        }`}
       style={{
         perspective: '1600px',
         cursor: useCustomCursor
@@ -652,6 +653,7 @@ export function Stage({
             onFocusSectionKeyboard={onFocusSectionKeyboard}
             onSelectSection={handleSelectSectionInternal}
             onSelectSubZone={handleSelectSubZoneInternal}
+            onFocusCardBbox={onFocusCardBbox}
           />
         </motion.div>
       </motion.div>
