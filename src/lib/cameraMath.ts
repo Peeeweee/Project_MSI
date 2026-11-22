@@ -21,7 +21,7 @@ export interface BaseStageMetrics {
 }
 
 export const MIN_SCALE = 1;
-export const MAX_SCALE = 7.5;
+export const MAX_SCALE = 9.2;
 export const SIDEBAR_WIDTH_COLLAPSED = 56;
 export const SIDEBAR_WIDTH_DESKTOP = 248;
 /** Breakpoint separating desktop left sidebar (>= 1024px) from tablet/mobile bottom sheet */
@@ -123,14 +123,15 @@ export function computeBboxCamera(
   const sidebarInset = getSidebarInset(viewport, hudVisible, sidebarCollapsed);
   const isCompact = viewport.width < DESKTOP_BREAKPOINT;
   const isSubZoneBox = boxWidthWorld < 1020 && boxHeightWorld < 720;
+  const isSingleCardBox = boxWidthWorld < 260 && boxHeightWorld < 220;
   const subPad = isSubZoneBox ? (isCompact ? 10 : 18) : 0;
   const padLeft = (sidebarInset > 0 ? sidebarInset + 14 : 10) + subPad;
   const padRight = (isCompact ? 10 : 16) + subPad;
   const padTop =
     (hudVisible ? (isCompact ? 10 : 14) : 10) +
-    (isSubZoneBox && hudVisible ? 38 : 0);
+    (isSingleCardBox && hudVisible ? 68 : isSubZoneBox && hudVisible ? 42 : 0);
   const padBottom =
-    (hudVisible ? (isCompact ? 132 : 46) : 10) + (isSubZoneBox ? 10 : 0);
+    (hudVisible ? (isCompact ? 132 : 46) : 10) + (isSubZoneBox ? 12 : 0);
 
   const availW = Math.max(140, viewport.width - padLeft - padRight);
   const availH = Math.max(140, viewport.height - padTop - padBottom);
