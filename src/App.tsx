@@ -863,6 +863,7 @@ export default function App() {
                 isCustomView={isCustomView}
                 onPan={panBy}
                 onSelectSubZone={goSubZone}
+                onFocusCardBbox={focusBbox}
                 onPrevSubZone={prevSubZone}
                 onNextSubZone={nextSubZone}
                 onResetView={resetSectionView}
