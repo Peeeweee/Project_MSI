@@ -51,10 +51,10 @@ export const WORLD_WIDTH = 2403;
 export const WORLD_HEIGHT = 1540;
 
 /** Responsive display artwork (2400w / 1200w) for crisp fast initial paint */
-export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=4';
-export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=4';
+export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=7';
+export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=7';
 /** Full 5560x3563 master artwork loaded lazily on zoom */
-export const FULL_MAP_SRC = './assets/map-full.jpg?v=4';
+export const FULL_MAP_SRC = './assets/map-full.jpg?v=7';
 
 export const SECTIONS: readonly Section[] = [
   {
@@ -124,7 +124,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=4',
+    cropSrc: './assets/appendicular.jpg?v=7',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
