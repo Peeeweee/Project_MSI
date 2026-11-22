@@ -46,7 +46,7 @@ const EFFECT_ITEMS: Array<{
   {
     key: 'intro',
     label: 'Micro-intro',
-    desc: '2s title reveal & animated counters',
+    desc: 'Fast 1.1s emblem & title reveal',
   },
   {
     key: 'skeleton',
