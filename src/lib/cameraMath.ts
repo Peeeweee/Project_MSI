@@ -122,10 +122,10 @@ export function computeBboxCamera(
 
   const sidebarInset = getSidebarInset(viewport, hudVisible, sidebarCollapsed);
   const isCompact = viewport.width < DESKTOP_BREAKPOINT;
-  const padLeft = sidebarInset > 0 ? sidebarInset + 14 : 12;
-  const padRight = isCompact ? 12 : 16;
-  const padTop = hudVisible ? (isCompact ? 14 : 14) : 10;
-  const padBottom = hudVisible ? (isCompact ? 86 : 46) : 10;
+  const padLeft = sidebarInset > 0 ? sidebarInset + 14 : 10;
+  const padRight = isCompact ? 10 : 16;
+  const padTop = hudVisible ? (isCompact ? 10 : 14) : 10;
+  const padBottom = hudVisible ? (isCompact ? 132 : 46) : 10;
 
   const availW = Math.max(140, viewport.width - padLeft - padRight);
   const availH = Math.max(140, viewport.height - padTop - padBottom);
@@ -190,10 +190,10 @@ export function clampCameraToSection(
   const sidebarInset = getSidebarInset(viewport, hudVisible, sidebarCollapsed);
   const isCompact = viewport.width < DESKTOP_BREAKPOINT;
 
-  const openLeft = sidebarInset > 0 ? sidebarInset + 12 : 10;
-  const openRight = viewport.width - (isCompact ? 10 : 14);
-  const openTop = hudVisible ? 12 : 10;
-  const openBottom = viewport.height - (hudVisible ? (isCompact ? 82 : 44) : 10);
+  const openLeft = sidebarInset > 0 ? sidebarInset + 12 : 8;
+  const openRight = viewport.width - (isCompact ? 8 : 14);
+  const openTop = hudVisible ? (isCompact ? 10 : 12) : 10;
+  const openBottom = viewport.height - (hudVisible ? (isCompact ? 128 : 44) : 10);
 
   const openW = Math.max(120, openRight - openLeft);
   const openH = Math.max(120, openBottom - openTop);
