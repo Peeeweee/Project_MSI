@@ -1,54 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  animate,
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { SECTIONS } from '../../data/sections';
 
 interface IntroOverlayProps {
   active: boolean;
   onComplete: () => void;
 }
 
-const INTRO_TITLE = 'MUSCULAR SYSTEM';
-
-function AnimatedCounter({
-  to,
-  suffix = '',
-  duration = 1.15,
-}: {
-  to: number;
-  suffix?: string;
-  duration?: number;
-}) {
-  const mv = useMotionValue(0);
-  const rounded = useTransform(mv, (v) => `${Math.round(v)}${suffix}`);
-  const [text, setText] = useState(`0${suffix}`);
-
-  useEffect(() => {
-    const controls = animate(mv, to, {
-      duration,
-      delay: 0.25,
-      ease: [0.22, 1, 0.36, 1],
-    });
-    const unsub = rounded.on('change', (latest) => setText(latest));
-    return () => {
-      controls.stop();
-      unsub();
-    };
-  }, [duration, mv, rounded, to]);
-
-  return <span className="font-mono-num">{text}</span>;
-}
+const INTRO_DURATION_MS = 1150;
 
 /**
- * 2-second micro-intro on first dashboard load:
- * - Assembles the "MUSCULAR SYSTEM" title letters with staggered 3D motion.
- * - Plays spring-eased animated counters (4 Regions, 4 Presenters, 100% Map).
- * - Immediately skippable with any key press or click.
+ * Quick, sleek 1.15-second cinematic title reveal on initial load:
+ * - Animated orbital SVG ring around the anatomical striated muscle emblem
+ * - Smooth optical reveal of "MUSCULAR SYSTEM" with expanding hairline beams
+ * - Staggered 4-region color chips (no bulky counter boxes)
+ * - Immediately skippable with any tap, click, or key press
  */
 export function IntroOverlay({ active, onComplete }: IntroOverlayProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -63,7 +29,10 @@ export function IntroOverlay({ active, onComplete }: IntroOverlayProps) {
       return;
     }
 
-    const timer = window.setTimeout(() => onCompleteRef.current(), 2000);
+    const timer = window.setTimeout(
+      () => onCompleteRef.current(),
+      INTRO_DURATION_MS,
+    );
 
     const handleSkipKey = (e: KeyboardEvent) => {
       e.preventDefault();
@@ -86,120 +55,138 @@ export function IntroOverlay({ active, onComplete }: IntroOverlayProps) {
           onClick={onComplete}
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, pointerEvents: 'none' }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-[#2b0606]/78 p-6 backdrop-blur-md"
+          exit={{
+            opacity: 0,
+            scale: 1.03,
+            filter: 'blur(6px)',
+            pointerEvents: 'none',
+          }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-[#180202]/80 p-6 backdrop-blur-lg"
         >
-          <motion.img
-            src="./favicon.svg?v=5"
-            alt=""
+          {/* Ambient radial crimson-gold glow behind emblem */}
+          <motion.div
             aria-hidden="true"
-            initial={{ opacity: 0, scale: 0.75, rotate: -10 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="mb-3 h-12 w-12 rounded-2xl shadow-xl"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1.15 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="pointer-events-none absolute h-64 w-64 rounded-full"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(220, 56, 56, 0.28) 0%, rgba(120, 18, 18, 0.1) 52%, transparent 75%)',
+            }}
           />
 
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="font-mono-num mb-3 rounded-full border border-[#ffd9d0]/25 bg-[#3b0a0a]/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#ffd9d0]"
-          >
-            Comparative Vertebrate Anatomy
-          </motion.span>
+          {/* Anatomical Muscle Emblem with Animated Orbital Ring */}
+          <div className="relative mb-3.5 flex h-16 w-16 items-center justify-center">
+            <svg
+              viewBox="0 0 72 72"
+              className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
+              aria-hidden="true"
+            >
+              <circle
+                cx="36"
+                cy="36"
+                r="33"
+                fill="none"
+                stroke="rgba(255, 217, 208, 0.14)"
+                strokeWidth="1.25"
+              />
+              <motion.circle
+                cx="36"
+                cy="36"
+                r="33"
+                fill="none"
+                stroke="#ffd9d0"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeDasharray="208"
+                initial={{ strokeDashoffset: 208, opacity: 0.4 }}
+                animate={{ strokeDashoffset: 0, opacity: 0.9 }}
+                transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </svg>
 
-          {/* Assembling Title Letters */}
-          <motion.h1
-            aria-label={INTRO_TITLE}
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: {
-                transition: { staggerChildren: 0.032, delayChildren: 0.06 },
-              },
-            }}
-            className="font-display flex flex-wrap justify-center text-center text-3xl font-semibold tracking-[0.14em] text-[#fff1ee] sm:text-5xl"
-          >
-            {INTRO_TITLE.split('').map((ch, idx) => (
-              <motion.span
-                key={idx}
-                aria-hidden="true"
-                variants={{
-                  hidden: {
-                    opacity: 0,
-                    y: idx % 2 === 0 ? -22 : 22,
-                    scale: 0.82,
-                  },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    transition: {
-                      type: 'spring',
-                      stiffness: 280,
-                      damping: 22,
-                    },
-                  },
-                }}
-                className="inline-block"
-              >
-                {ch === ' ' ? '\u00A0' : ch}
-              </motion.span>
-            ))}
-          </motion.h1>
+            <motion.img
+              src="./favicon.svg?v=5"
+              alt=""
+              aria-hidden="true"
+              initial={{ opacity: 0, scale: 0.68, rotate: -12 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+              className="h-11 w-11 rounded-2xl shadow-2xl"
+            />
+          </div>
 
-          {/* Animated Counters */}
+          {/* Overline with expanding flanking beams */}
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.45 }}
-            className="mt-6 flex flex-wrap items-center justify-center gap-5 rounded-2xl border border-[#ffd9d0]/18 bg-[#3b0a0a]/75 px-6 py-3 text-center shadow-xl sm:gap-8"
+            transition={{ duration: 0.28, delay: 0.05 }}
+            className="mb-2 flex items-center gap-2.5"
           >
-            <div>
-              <div className="text-xl font-bold text-[#fff1ee] sm:text-2xl">
-                <AnimatedCounter to={4} />
-              </div>
-              <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[#ffd9d0]/75">
-                Sections
-              </div>
-            </div>
-
-            <span className="h-7 w-px bg-[#ffd9d0]/16" aria-hidden="true" />
-
-            <div>
-              <div className="text-xl font-bold text-[#fff1ee] sm:text-2xl">
-                <AnimatedCounter to={4} />
-              </div>
-              <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[#ffd9d0]/75">
-                Presenters
-              </div>
-            </div>
-
-            <span className="h-7 w-px bg-[#ffd9d0]/16" aria-hidden="true" />
-
-            <div>
-              <div className="text-xl font-bold text-[#fff1ee] sm:text-2xl">
-                <AnimatedCounter to={100} suffix="%" />
-              </div>
-              <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[#ffd9d0]/75">
-                Interactive Map
-              </div>
-            </div>
+            <motion.span
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 28, opacity: 0.55 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="h-px bg-gradient-to-r from-transparent to-[#ffd9d0]"
+            />
+            <span className="font-mono-num text-[10px] font-semibold tracking-[0.26em] text-[#ffd9d0]/90 uppercase">
+              Comparative Vertebrate Anatomy
+            </span>
+            <motion.span
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 28, opacity: 0.55 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="h-px bg-gradient-to-l from-transparent to-[#ffd9d0]"
+            />
           </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.72 }}
-            transition={{ delay: 0.45, duration: 0.3 }}
-            className="mt-6 text-[11px] font-medium tracking-wide text-[#ffd9d0]"
+          {/* Sleek Optical Title Reveal */}
+          <motion.h1
+            initial={{ opacity: 0, y: 10, scale: 0.96, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+            transition={{ duration: 0.38, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-center text-3xl font-semibold tracking-[0.16em] text-[#fff1ee] sm:text-5xl"
           >
-            Press any key or click to skip
-          </motion.p>
+            MUSCULAR SYSTEM
+          </motion.h1>
+
+          {/* Sweeping specular light underline */}
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ duration: 0.48, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-2.5 h-px w-48 bg-gradient-to-r from-transparent via-[#ffd9d0]/70 to-transparent sm:w-64"
+          />
+
+          {/* 4 Staggered CVA Region Pills (replaces old 4-4 counter box) */}
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {SECTIONS.map((s, idx) => (
+              <motion.span
+                key={s.id}
+                initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{
+                  duration: 0.26,
+                  delay: 0.16 + idx * 0.045,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#ffd9d0]/18 bg-[#2a0606]/85 px-2.5 py-1 text-[11px] font-medium text-[#fff1ee] shadow-md"
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{
+                    backgroundColor: s.accent,
+                    boxShadow: `0 0 8px ${s.accent}`,
+                  }}
+                />
+                <span>{s.name}</span>
+              </motion.span>
+            ))}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
-
