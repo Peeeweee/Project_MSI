@@ -21,7 +21,7 @@ export interface BaseStageMetrics {
 }
 
 export const MIN_SCALE = 1;
-export const MAX_SCALE = 5.0;
+export const MAX_SCALE = 5.8;
 export const SIDEBAR_WIDTH_COLLAPSED = 56;
 export const SIDEBAR_WIDTH_DESKTOP = 248;
 /** Breakpoint separating desktop left sidebar (>= 1024px) from tablet/mobile bottom sheet */
@@ -122,10 +122,15 @@ export function computeBboxCamera(
 
   const sidebarInset = getSidebarInset(viewport, hudVisible, sidebarCollapsed);
   const isCompact = viewport.width < DESKTOP_BREAKPOINT;
-  const padLeft = sidebarInset > 0 ? sidebarInset + 14 : 10;
-  const padRight = isCompact ? 10 : 16;
-  const padTop = hudVisible ? (isCompact ? 10 : 14) : 10;
-  const padBottom = hudVisible ? (isCompact ? 132 : 46) : 10;
+  const isSubZoneBox = boxWidthWorld < 1020 && boxHeightWorld < 720;
+  const subPad = isSubZoneBox ? (isCompact ? 10 : 18) : 0;
+  const padLeft = (sidebarInset > 0 ? sidebarInset + 14 : 10) + subPad;
+  const padRight = (isCompact ? 10 : 16) + subPad;
+  const padTop =
+    (hudVisible ? (isCompact ? 10 : 14) : 10) +
+    (isSubZoneBox && hudVisible ? 38 : 0);
+  const padBottom =
+    (hudVisible ? (isCompact ? 132 : 46) : 10) + (isSubZoneBox ? 10 : 0);
 
   const availW = Math.max(140, viewport.width - padLeft - padRight);
   const availH = Math.max(140, viewport.height - padTop - padBottom);
@@ -201,12 +206,16 @@ export function clampCameraToSection(
   const openCenterXOffset = (openLeft + openRight) / 2 - viewport.width / 2;
   const openCenterYOffset = (openTop + openBottom) / 2 - viewport.height / 2;
 
+  const isDeepSubZoom = scale > fitCam.scale * 1.18;
+  const slackX = isDeepSubZoom ? openW * 0.36 : 0;
+  const slackY = isDeepSubZoom ? openH * 0.24 : 0;
+
   let clampedX: number;
   if (cropScaledW <= openW) {
     clampedX = openCenterXOffset - cropCxBase * scale;
   } else {
-    const maxX = openLeft - viewport.width / 2 - cropLeftBase * scale;
-    const minX = openRight - viewport.width / 2 - cropRightBase * scale;
+    const maxX = openLeft - viewport.width / 2 - cropLeftBase * scale + slackX;
+    const minX = openRight - viewport.width / 2 - cropRightBase * scale - slackX;
     clampedX = clamp(cam.x, Math.min(minX, maxX), Math.max(minX, maxX));
   }
 
@@ -214,8 +223,8 @@ export function clampCameraToSection(
   if (cropScaledH <= openH) {
     clampedY = openCenterYOffset - cropCyBase * scale;
   } else {
-    const maxY = openTop - viewport.height / 2 - cropTopBase * scale;
-    const minY = openBottom - viewport.height / 2 - cropBottomBase * scale;
+    const maxY = openTop - viewport.height / 2 - cropTopBase * scale + slackY;
+    const minY = openBottom - viewport.height / 2 - cropBottomBase * scale - slackY;
     clampedY = clamp(cam.y, Math.min(minY, maxY), Math.max(minY, maxY));
   }
 
