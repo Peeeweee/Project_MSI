@@ -252,7 +252,7 @@ export function EvolutionCompareModal({
             </div>
 
             {/* Scrollable Body */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
+            <div className="touch-scroll-y min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
               {/* Compact Active Chain Banner */}
               <div className="rounded-2xl border border-[#ffd9d0]/15 bg-[#260505]/75 px-3.5 py-2.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -273,7 +273,7 @@ export function EvolutionCompareModal({
                         {activeChain.title}
                       </h3>
                     </div>
-                    <p className="mt-0.5 text-[11.5px] leading-snug text-[#ffd9d0]/82">
+                    <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-snug text-[#ffd9d0]/82 sm:line-clamp-none">
                       {activeChain.summary}
                     </p>
                   </div>
