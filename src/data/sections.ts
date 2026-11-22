@@ -51,10 +51,10 @@ export const WORLD_WIDTH = 2403;
 export const WORLD_HEIGHT = 1540;
 
 /** Responsive display artwork (2400w / 1200w) for crisp fast initial paint */
-export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=8';
-export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=8';
+export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=11';
+export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=11';
 /** Full 5560x3563 master artwork loaded lazily on zoom */
-export const FULL_MAP_SRC = './assets/map-full.jpg?v=8';
+export const FULL_MAP_SRC = './assets/map-full.jpg?v=11';
 
 export const SECTIONS: readonly Section[] = [
   {
@@ -64,7 +64,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Hanami',
     fullName: 'Hanna Mae M. Ceniza',
     crop: 'axial.jpg',
-    cropSrc: './assets/axial.jpg?v=8',
+    cropSrc: './assets/axial.jpg?v=11',
     accent: '#2563eb',
     badgeText: '#fff1ee',
     bbox: [0, 802, 1172, 1540],
@@ -81,7 +81,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=8',
+    cropSrc: './assets/appendicular.jpg?v=11',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
@@ -148,7 +148,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Reymark',
     fullName: 'Reymark P. Villarosa',
     crop: 'hypobranchial.jpg',
-    cropSrc: './assets/hypobranchial.jpg?v=8',
+    cropSrc: './assets/hypobranchial.jpg?v=11',
     accent: '#7c3aed',
     badgeText: '#fff1ee',
     bbox: [1040, 0, 2006, 802],
@@ -165,7 +165,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Kurt',
     fullName: 'Kurt Hendrick P. Saromines',
     crop: 'branchiomeric.jpg',
-    cropSrc: './assets/branchiomeric.jpg?v=8',
+    cropSrc: './assets/branchiomeric.jpg?v=11',
     accent: '#d97706',
     badgeText: '#160303',
     bbox: [1172, 0, 2403, 1540],
