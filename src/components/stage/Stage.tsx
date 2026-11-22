@@ -36,6 +36,7 @@ import { CinematicEffects } from './CinematicEffects';
 import { HiResCropLayer } from './HiResCropLayer';
 import { InteractiveOverlay } from './InteractiveOverlay';
 import { SpotlightOverlay } from './SpotlightOverlay';
+import { TrueResCanvas } from './TrueResCanvas';
 
 interface StageProps {
   camera: UseCameraReturn;
@@ -130,6 +131,7 @@ export function Stage({
   const [hiResFullReady, setHiResFullReady] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapMissing, setMapMissing] = useState(false);
+  const [trueResReady, setTrueResReady] = useState(false);
 
   // Guard against cached images that complete before React attaches onLoad
   useEffect(() => {
@@ -440,6 +442,14 @@ export function Stage({
         : null;
   const blurOutside = Boolean(lockingSection);
 
+  // Direct physical-pixel canvas renderer takes over whenever zoomed into any section/sub-part
+  const trueResActive =
+    !introActive &&
+    lockingSectionId === null &&
+    (activeSectionId !== null || camera.camera.scale > 1.02) &&
+    !mapMissing;
+  const hideCssScaledLayers = trueResActive && trueResReady;
+
   const useCustomCursor =
     magneticCursorEnabled &&
     activeSectionId === null &&
@@ -472,6 +482,19 @@ export function Stage({
       onPointerCancel={handlePointerUpOrCancel}
       onClick={handleStageClick}
     >
+      {/* OpenSeadragon-style Direct Physical-Pixel High-DPI Canvas Renderer (zero CSS transform:scale blur) */}
+      <TrueResCanvas
+        x={combinedX}
+        y={combinedY}
+        scale={scale}
+        stageViewport={stageViewport}
+        activeSectionId={activeSectionId}
+        activeSubZoneId={activeSubZoneId}
+        emphasizeActive={emphasizeActive}
+        active={trueResActive}
+        onReadyChange={setTrueResReady}
+      />
+
       {/* Intro 3D lift wrapper: fades up cleanly from a rotated 3D tilt during the 2s micro-intro */}
       <motion.div
         initial={false}
@@ -486,7 +509,7 @@ export function Stage({
           damping: 22,
           mass: 1.0,
         }}
-        className="flex items-center justify-center"
+        className="relative z-10 flex items-center justify-center"
       >
         {/* ONE shared camera wrapper: flat 3D-projected plane inside perspective: 1600px for 100% accurate SVG hit-testing */}
         <motion.div
@@ -555,17 +578,17 @@ export function Stage({
               }}
               className="block h-full w-full select-none object-contain"
               style={{
-                opacity: mapLoaded ? 1 : 0,
+                opacity: hideCssScaledLayers ? 0 : mapLoaded ? 1 : 0,
                 filter: emphasizeActive
                   ? 'grayscale(100%) brightness(0.56) contrast(0.92)'
                   : 'none',
-                transition: 'opacity 320ms ease-out, filter 420ms ease-out',
+                transition: 'opacity 160ms ease-out, filter 420ms ease-out',
               }}
             />
           )}
 
           {/* Full 5560x3563 master artwork crossfades in lazily ONLY on deep zoom (>= 2.25x) */}
-          {hiResFullReady && isDeepZoom && !mapMissing && (
+          {hiResFullReady && isDeepZoom && !mapMissing && !hideCssScaledLayers && (
             <motion.img
               src={FULL_MAP_SRC}
               alt=""
@@ -600,7 +623,7 @@ export function Stage({
 
           {/* Spotlight: hover dim/desaturate, Phase 1 Lock-on, & zoomed active full-color emphasis cutout */}
           <SpotlightOverlay
-            section={spotlightSection}
+            section={hideCssScaledLayers ? null : spotlightSection}
             blurOutside={blurOutside}
             emphasizeActive={emphasizeActive}
             mapSrc={hiResFullReady && isDeepZoom ? FULL_MAP_SRC : displaySrc}
@@ -610,7 +633,7 @@ export function Stage({
           {/* Phase 3 pixel-aligned hi-res crop crossfade inside the exact same wrapper */}
           <HiResCropLayer
             activeSectionId={activeSectionId}
-            revealed={cropRevealed}
+            revealed={cropRevealed && !hideCssScaledLayers}
             loadedCrops={loadedCrops}
           />
 
