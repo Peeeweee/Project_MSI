@@ -25,6 +25,7 @@ interface InteractiveOverlayProps {
   onFocusSectionKeyboard: (section: Section | null) => void;
   onSelectSection: (id: SectionId, clickPoint?: { x: number; y: number }) => void;
   onSelectSubZone: (subZoneId: string | null) => void;
+  onFocusCardBbox?: (bbox: readonly [number, number, number, number]) => void;
 }
 
 /**
@@ -48,11 +49,13 @@ export function InteractiveOverlay({
   onFocusSectionKeyboard,
   onSelectSection,
   onSelectSubZone,
+  onFocusCardBbox,
 }: InteractiveOverlayProps) {
   const prefersReducedMotion = useReducedMotion();
   const hoverTransition = pickTransition(HOVER_SPRING, prefersReducedMotion);
   const [focusedId, setFocusedId] = useState<SectionId | null>(null);
   const [focusedSubId, setFocusedSubId] = useState<string | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
   const handleKeyDown = (e: KeyboardEvent<SVGPolygonElement>, id: SectionId) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -311,7 +314,7 @@ export function InteractiveOverlay({
                 fill="transparent"
                 stroke="transparent"
                 strokeWidth={0}
-                pointerEvents="auto"
+                pointerEvents={isSubActive && subZone.cards && subZone.cards.length > 0 ? 'none' : 'auto'}
                 tabIndex={0}
                 role="button"
                 aria-label={`${
@@ -344,6 +347,58 @@ export function InteractiveOverlay({
                 }}
                 onKeyDown={(e) => handleSubKeyDown(e, subZone.id)}
               />
+
+              {/* Level-3 Individual Specimen Card Zoom Hotspots (when zoomed into this sub-part) */}
+              {isSubActive &&
+                subZone.cards &&
+                onFocusCardBbox &&
+                subZone.cards.map((card) => {
+                  const [cx1, cy1, cx2, cy2] = card.bbox;
+                  const cw = Math.max(10, cx2 - cx1);
+                  const ch = Math.max(10, cy2 - cy1);
+                  const isCardHovered = !isDragging && hoveredCardId === card.id;
+
+                  return (
+                    <g key={card.id} data-card-group={card.id}>
+                      {isCardHovered && (
+                        <rect
+                          x={cx1}
+                          y={cy1}
+                          width={cw}
+                          height={ch}
+                          rx={10}
+                          fill={`${activeSection.accent}14`}
+                          stroke={activeSection.accent}
+                          strokeWidth={2}
+                          strokeDasharray="10 6"
+                          vectorEffect="non-scaling-stroke"
+                          pointerEvents="none"
+                        />
+                      )}
+                      <rect
+                        data-testid={`card-hotspot-${card.id}`}
+                        x={cx1}
+                        y={cy1}
+                        width={cw}
+                        height={ch}
+                        rx={10}
+                        fill="transparent"
+                        stroke="transparent"
+                        pointerEvents="auto"
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Deep zoom into ${card.label}`}
+                        className="cursor-zoom-in"
+                        onMouseEnter={() => setHoveredCardId(card.id)}
+                        onMouseLeave={() => setHoveredCardId(null)}
+                        onClick={(e: MouseEvent<SVGRectElement>) => {
+                          e.stopPropagation();
+                          onFocusCardBbox(card.bbox);
+                        }}
+                      />
+                    </g>
+                  );
+                })}
             </g>
           );
         })}
