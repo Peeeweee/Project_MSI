@@ -51,10 +51,10 @@ export const WORLD_WIDTH = 2403;
 export const WORLD_HEIGHT = 1540;
 
 /** Responsive display artwork (2400w / 1200w) for crisp fast initial paint */
-export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=11';
-export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=11';
+export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=12';
+export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=12';
 /** Full 5560x3563 master artwork loaded lazily on zoom */
-export const FULL_MAP_SRC = './assets/map-full.jpg?v=11';
+export const FULL_MAP_SRC = './assets/map-full.jpg?v=12';
 
 export const SECTIONS: readonly Section[] = [
   {
@@ -64,7 +64,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Hanami',
     fullName: 'Hanna Mae M. Ceniza',
     crop: 'axial.jpg',
-    cropSrc: './assets/axial.jpg?v=11',
+    cropSrc: './assets/axial.jpg?v=12',
     accent: '#2563eb',
     badgeText: '#fff1ee',
     bbox: [0, 802, 1172, 1540],
@@ -81,7 +81,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=11',
+    cropSrc: './assets/appendicular.jpg?v=12',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
@@ -96,6 +96,10 @@ export const SECTIONS: readonly Section[] = [
         label: 'Paired Fins: Teleosts & Sharks',
         detail: '2 Diagrams · Teleost Abductor/Adductor vs. Shark Propterygium & Pectoral Fin',
         bbox: [6, 6, 394, 166],
+        cards: [
+          { id: 'teleosts', label: 'Teleosts', bbox: [6, 6, 192, 166] },
+          { id: 'sharks', label: 'Sharks', bbox: [195, 6, 394, 166] },
+        ],
       },
       {
         id: 'append-dev',
@@ -103,6 +107,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Embryonic Fin/Limb Development',
         detail: '3 Comparative Stages · Amniotes, Teleosts (Derived) & Chondrichthyans (Primitive)',
         bbox: [398, 4, 1010, 174],
+        cards: [
+          { id: 'amniotes', label: 'Amniotes', bbox: [398, 4, 595, 174] },
+          { id: 'teleosts', label: 'Teleosts', bbox: [600, 4, 798, 174] },
+          { id: 'chondrichthyans', label: 'Chondrichthyans', bbox: [802, 4, 1010, 174] },
+        ],
       },
       {
         id: 'append-fore-1',
@@ -110,6 +119,10 @@ export const SECTIONS: readonly Section[] = [
         label: 'Forelimb I: Amphibians & Reptiles',
         detail: '2 Diagrams · Salamander (Necturus) & Reptile Superficial/Deep Forelimb',
         bbox: [10, 268, 315, 369],
+        cards: [
+          { id: 'amphibians', label: 'Amphibians', bbox: [10, 268, 158, 369] },
+          { id: 'reptiles', label: 'Reptiles', bbox: [160, 268, 315, 369] },
+        ],
       },
       {
         id: 'append-fore-2',
@@ -117,6 +130,10 @@ export const SECTIONS: readonly Section[] = [
         label: 'Forelimb II: Avians & Mammals',
         detail: '2 Diagrams · Pigeon Wing (Dorsal/Ventral) & Domestic Cat Forelimb',
         bbox: [3, 376, 315, 483],
+        cards: [
+          { id: 'avians', label: 'Avians', bbox: [3, 376, 160, 483] },
+          { id: 'mammals', label: 'Mammals', bbox: [165, 376, 315, 483] },
+        ],
       },
       {
         id: 'append-pelv-sources',
@@ -131,6 +148,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Hindlimb Clades',
         detail: '3 Clades · Amphibians, Avians & Mammals Pelvic Hindlimb Musculature',
         bbox: [4, 498, 468, 624],
+        cards: [
+          { id: 'amphibians', label: 'Amphibians (Frog)', bbox: [4, 498, 152, 624] },
+          { id: 'avians', label: 'Avians (Bird)', bbox: [153, 498, 301, 624] },
+          { id: 'mammals', label: 'Mammals (Cat)', bbox: [302, 498, 468, 624] },
+        ],
       },
       {
         id: 'append-spec',
@@ -138,6 +160,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Tetrapod Specializations',
         detail: '3 Adaptations · Amphibians (Saltatorial), Avians (Flight) & Ungulates (Cursorial)',
         bbox: [18, 636, 530, 801],
+        cards: [
+          { id: 'amphibians', label: 'Amphibians (Saltatorial)', bbox: [18, 636, 194, 801] },
+          { id: 'avians', label: 'Avians (Flight)', bbox: [204, 636, 366, 801] },
+          { id: 'ungulates', label: 'Ungulates (Horse)', bbox: [376, 636, 530, 801] },
+        ],
       },
     ],
   },
@@ -148,7 +175,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Reymark',
     fullName: 'Reymark P. Villarosa',
     crop: 'hypobranchial.jpg',
-    cropSrc: './assets/hypobranchial.jpg?v=11',
+    cropSrc: './assets/hypobranchial.jpg?v=12',
     accent: '#7c3aed',
     badgeText: '#fff1ee',
     bbox: [1040, 0, 2006, 802],
@@ -165,7 +192,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Kurt',
     fullName: 'Kurt Hendrick P. Saromines',
     crop: 'branchiomeric.jpg',
-    cropSrc: './assets/branchiomeric.jpg?v=11',
+    cropSrc: './assets/branchiomeric.jpg?v=12',
     accent: '#d97706',
     badgeText: '#160303',
     bbox: [1172, 0, 2403, 1540],
