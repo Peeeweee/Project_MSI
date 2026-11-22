@@ -12,3 +12,10 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
+// Register Offline PWA Service Worker so Project MSI works even when offline
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
