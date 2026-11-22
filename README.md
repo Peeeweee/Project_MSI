@@ -1,6 +1,9 @@
 # Project MSI — CVA Muscular System Interactive Dashboard
 
-Live Demo: **[Project MSI](https://peeeweee.github.io/Project_MSI/)**
+- **Live Interactive App**: **[Project MSI](https://peeeweee.github.io/Project_MSI/)**
+- **Original Poster HD Viewer (5560×3563)**: **[Original Poster Viewer](https://peeeweee.github.io/Project_MSI/poster-original.html)**
+- **Direct Original PNG**: **[CVA-Muscular-System-Original.png](https://peeeweee.github.io/Project_MSI/assets/CVA-Muscular-System-Original.png)**
+- **Direct Original PDF**: **[CVA-Muscular-System-Original.pdf](https://peeeweee.github.io/Project_MSI/assets/CVA-Muscular-System-Original.pdf)**
 
 An interactive comparative vertebrate anatomy concept-map & realistic 3D muscular explorer built with **Vite + React + TypeScript + Tailwind CSS + Framer Motion + Three.js (`@react-three/fiber` / `@react-three/drei`)**.
 
