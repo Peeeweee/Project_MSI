@@ -22,6 +22,7 @@ import {
   SECTIONS,
   type Section,
   type SectionId,
+  type SectionSubZone,
 } from '../../data/sections';
 import type { UseCameraReturn } from '../../hooks/useCamera';
 import {
@@ -42,6 +43,7 @@ interface StageProps {
   hudVisible: boolean;
   sidebarCollapsed: boolean;
   hoveredSection: Section | null;
+  hoveredSubZone: SectionSubZone | null;
   isolateActiveSection: boolean;
   idleHintSectionId: SectionId | null;
   loadedCrops: Partial<Record<SectionId, LoadedCropMeta>>;
@@ -55,8 +57,10 @@ interface StageProps {
   /** Show blurred low-res LQIP skeleton until map-full.jpg loads */
   skeletonEnabled: boolean;
   onHoverSection: (section: Section | null, pointer?: { x: number; y: number }) => void;
+  onHoverSubZone: (subZone: SectionSubZone | null, pointer?: { x: number; y: number }) => void;
   onFocusSectionKeyboard: (section: Section | null) => void;
   onSelectSection: (id: SectionId, clickPoint?: { x: number; y: number }) => void;
+  onSelectSubZone: (subZoneId: string | null) => void;
 }
 
 interface ActivePointer {
@@ -77,6 +81,7 @@ export function Stage({
   hudVisible,
   sidebarCollapsed,
   hoveredSection,
+  hoveredSubZone,
   isolateActiveSection,
   idleHintSectionId,
   loadedCrops,
@@ -87,8 +92,10 @@ export function Stage({
   introActive,
   skeletonEnabled,
   onHoverSection,
+  onHoverSubZone,
   onFocusSectionKeyboard,
   onSelectSection,
+  onSelectSubZone,
 }: StageProps) {
   const {
     x,
@@ -98,6 +105,7 @@ export function Stage({
     rotateY: cameraRotateY,
     stageOpacity,
     activeSection,
+    activeSubZoneId,
     isTransitioning,
     phase,
     lockingSectionId,
@@ -326,6 +334,7 @@ export function Stage({
       suppressNextClickRef.current = true;
       setIsDragging(true);
       onHoverSection(null);
+      onHoverSubZone(null);
       e.currentTarget.setPointerCapture?.(e.pointerId);
     }
 
@@ -387,6 +396,17 @@ export function Stage({
       onSelectSection(id, clickPoint);
     },
     [onSelectSection],
+  );
+
+  const handleSelectSubZoneInternal = useCallback(
+    (subZoneId: string | null) => {
+      if (suppressNextClickRef.current) {
+        suppressNextClickRef.current = false;
+        return;
+      }
+      onSelectSubZone(subZoneId);
+    },
+    [onSelectSubZone],
   );
 
   const handleStageClick = (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -597,14 +617,18 @@ export function Stage({
           {/* Shared-wrapper 2403x1540 SVG hotspot overlay */}
           <InteractiveOverlay
             activeSectionId={activeSectionId}
+            activeSubZoneId={activeSubZoneId}
             hoveredSectionId={hoveredSection?.id ?? null}
+            hoveredSubZoneId={hoveredSubZone?.id ?? null}
             lockingSectionId={lockingSectionId}
             idleHintSectionId={idleHintSectionId}
             emphasizeActive={emphasizeActive}
             isDragging={isDragging}
             onHoverSection={onHoverSection}
+            onHoverSubZone={onHoverSubZone}
             onFocusSectionKeyboard={onFocusSectionKeyboard}
             onSelectSection={handleSelectSectionInternal}
+            onSelectSubZone={handleSelectSubZoneInternal}
           />
         </motion.div>
       </motion.div>
