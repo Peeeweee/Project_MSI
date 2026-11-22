@@ -128,7 +128,7 @@ export function MuscleModelScene({
   onUserOrbitStart,
 }: MuscleModelSceneProps) {
   const { scene } = useGLTF(MUSCLES_GLB_URL);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const rigRef = useRef<THREE.Group | null>(null);
 
@@ -195,8 +195,17 @@ export function MuscleModelScene({
   // Update camera goal whenever active section, angle preset, or manual reset changes
   useEffect(() => {
     const goal = getCameraGoal(activeSectionId, anglePreset);
-    goalPosRef.current.set(...goal.position);
-    goalTargetRef.current.set(...goal.target);
+    const aspect = size.width / Math.max(1, size.height);
+    const portraitBoost = aspect < 0.85 ? 1.18 : 1;
+    const tx = goal.target[0];
+    const ty = goal.target[1];
+    const tz = goal.target[2];
+    goalTargetRef.current.set(tx, ty, tz);
+    goalPosRef.current.set(
+      tx + (goal.position[0] - tx) * portraitBoost,
+      ty + (goal.position[1] - ty) * portraitBoost,
+      tz + (goal.position[2] - tz) * portraitBoost,
+    );
 
     if (reducedMotion) {
       camera.position.copy(goalPosRef.current);
@@ -208,7 +217,15 @@ export function MuscleModelScene({
     } else {
       isTransitioningRef.current = true;
     }
-  }, [activeSectionId, anglePreset, camera, reducedMotion, resetTrigger]);
+  }, [
+    activeSectionId,
+    anglePreset,
+    camera,
+    reducedMotion,
+    resetTrigger,
+    size.height,
+    size.width,
+  ]);
 
   // Synchronize material appearance (realistic flesh, tasteful CVA section focus, X-ray ghosting, selection)
   useEffect(() => {
@@ -510,7 +527,10 @@ export function MuscleModelScene({
             const isSelected =
               selectedSubPartId === part.id ||
               (part.muscleId !== undefined && selectedMuscleId === part.muscleId);
-            const [dx, dy] = part.calloutShift;
+            const isCompact = size.width < 640;
+            const shiftScale = isCompact ? 0.35 : 1;
+            const dx = Math.round(part.calloutShift[0] * shiftScale);
+            const dy = Math.round(part.calloutShift[1] * shiftScale);
             const alignLeft = dx < 0;
 
             return (
@@ -554,9 +574,11 @@ export function MuscleModelScene({
                       style={{
                         left: `${dx}px`,
                         top: `${dy}px`,
-                        transform: alignLeft
-                          ? 'translate(-100%, -50%)'
-                          : 'translate(0%, -50%)',
+                        transform: isCompact
+                          ? 'translate(-50%, -50%)'
+                          : alignLeft
+                            ? 'translate(-100%, -50%)'
+                            : 'translate(0%, -50%)',
                         backgroundColor: isSelected
                           ? 'rgba(46, 8, 10, 0.96)'
                           : 'rgba(26, 4, 5, 0.88)',
@@ -565,10 +587,12 @@ export function MuscleModelScene({
                           ? `0 0 18px ${sec.accent}88`
                           : '0 6px 16px rgba(0,0,0,0.45)',
                       }}
-                      className="pointer-events-auto absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border py-0.5 pl-1 pr-2.5 text-[11px] font-semibold text-[#fff1ee] backdrop-blur-md transition-transform hover:scale-[1.04]"
+                      className={`pointer-events-auto absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border py-0.5 text-[11px] font-semibold text-[#fff1ee] backdrop-blur-md transition-transform hover:scale-[1.04] ${
+                        isCompact && !isSelected ? 'px-0.5' : 'pl-1 pr-2.5'
+                      }`}
                     >
                       <span
-                        className="font-mono-num flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold"
+                        className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold sm:h-4 sm:w-4 sm:text-[9px]"
                         style={{
                           backgroundColor: isSelected ? '#fff1ee' : sec.accent,
                           color: isSelected ? '#3b0a0a' : sec.badgeText,
@@ -576,7 +600,15 @@ export function MuscleModelScene({
                       >
                         {part.tag}
                       </span>
-                      <span className="font-display tracking-wide">{part.label}</span>
+                      <span
+                        className={`font-display tracking-wide ${
+                          isCompact && !isSelected
+                            ? 'hidden'
+                            : 'max-w-[130px] truncate sm:max-w-none'
+                        }`}
+                      >
+                        {part.label}
+                      </span>
                     </button>
                   </div>
                 </Html>
