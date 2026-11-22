@@ -5,6 +5,8 @@ import {
   Copy,
   Download,
   ExternalLink,
+  FileDown,
+  Image as ImageIcon,
   QrCode as QrCodeIcon,
   Smartphone,
   X,
@@ -25,8 +27,14 @@ interface QrShareModalProps {
   onClose: () => void;
 }
 
-const TARGET_KEYS: readonly QrTargetKey[] = [
+const PRIMARY_QR_KEYS: readonly QrTargetKey[] = [
   'overview',
+  'original',
+  'raw_png',
+  'raw_pdf',
+];
+
+const SECTION_QR_KEYS: readonly QrTargetKey[] = [
   'axial',
   'appendicular',
   'hypobranchial',
@@ -118,9 +126,12 @@ function BrandedQrSvg({ entry }: { entry: QrMatrixEntry }) {
 
 /**
  * Top-bar triggered Classroom Phone Companion QR Code modal (#5):
- * - Never clutters the home poster stage; opens cleanly from the top bar.
- * - Lets classmates & instructors scan the classroom TV to explore Project MSI
- *   (or jump straight to the active presenter's section) on their phones.
+ * - Includes dedicated QR codes for:
+ *   1. Interactive App (`overview` or active CVA section `#axial`..`#branchiomeric`)
+ *   2. Original Poster (HD 5560x3563 Viewer + PNG/PDF Save Page)
+ *   3. Raw PNG Image Only (`CVA-Muscular-System-Original.png`)
+ *   4. Raw PDF File Only (`CVA-Muscular-System-Original.pdf`)
+ * - Also provides 1-click Save as PNG, Save as PDF, and View Original Image buttons.
  */
 export function QrShareModal({
   open,
@@ -166,13 +177,13 @@ export function QrShareModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.16 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#140202]/78 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#140202]/80 p-3 backdrop-blur-md sm:p-4"
         >
           <motion.div
             key="qr-share-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Scan QR Code to open Project MSI on mobile"
+            aria-label="Scan QR Code or Download Original Poster PNG and PDF"
             initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
@@ -191,7 +202,7 @@ export function QrShareModal({
                 style={{ backgroundColor: entry.accent }}
               />
 
-              <div className="touch-scroll-y max-h-[86dvh] overflow-y-auto p-4 sm:p-5">
+              <div className="touch-scroll-y max-h-[90dvh] overflow-y-auto p-4 sm:p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
@@ -207,10 +218,10 @@ export function QrShareModal({
                     </span>
                     <div>
                       <h2 className="font-display text-lg font-semibold text-[#fff1ee]">
-                        Mobile Classroom Companion
+                        QR Companion & Original Poster
                       </h2>
                       <p className="text-xs text-[#ffd9d0]/75">
-                        Scan on your phone to zoom & explore live alongside the TV
+                        Scan for Interactive App or Original 5560×3563 Poster (PNG & PDF)
                       </p>
                     </div>
                   </div>
@@ -225,13 +236,50 @@ export function QrShareModal({
                   </button>
                 </div>
 
-                {/* Target Section / Full Dashboard Switcher */}
+                {/* Row 1: Interactive App vs. Original High-Quality Poster (HD / PNG / PDF) QR Switcher */}
+                <div className="mt-3">
+                  <div className="mb-1 text-[10px] font-semibold tracking-wider text-[#ffd9d0]/65 uppercase">
+                    Select QR Code Mode
+                  </div>
+                  <div
+                    className="grid grid-cols-2 gap-1 rounded-2xl border border-[#ffd9d0]/16 bg-[#1c0303]/85 p-1 sm:grid-cols-4"
+                    role="tablist"
+                    aria-label="QR Code destination type"
+                  >
+                    {PRIMARY_QR_KEYS.map((key) => {
+                      const item = QR_MATRICES[key];
+                      const active = key === selectedKey;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          data-testid={`qr-tab-${key}`}
+                          onClick={() => {
+                            setSelectedKey(key);
+                            setCopied(false);
+                          }}
+                          className={`hud-btn rounded-xl px-2 py-1.5 text-center text-[11px] font-semibold transition-all ${
+                            active
+                              ? 'bg-[#fff1ee] text-[#240505] shadow-sm'
+                              : 'text-[#ffd9d0]/82 hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Row 2: CVA Section Deep-Link QR Switcher */}
                 <div
-                  className="mt-3.5 flex flex-wrap items-center gap-1 rounded-2xl border border-[#ffd9d0]/14 bg-[#1c0303]/80 p-1"
+                  className="mt-1.5 grid grid-cols-4 gap-1 rounded-2xl border border-[#ffd9d0]/12 bg-[#1c0303]/60 p-1"
                   role="tablist"
-                  aria-label="QR target link"
+                  aria-label="CVA Section QR Code links"
                 >
-                  {TARGET_KEYS.map((key) => {
+                  {SECTION_QR_KEYS.map((key) => {
                     const item = QR_MATRICES[key];
                     const active = key === selectedKey;
                     return (
@@ -245,10 +293,10 @@ export function QrShareModal({
                           setSelectedKey(key);
                           setCopied(false);
                         }}
-                        className={`hud-btn flex-1 rounded-xl px-2 py-1 text-center text-[11px] font-semibold whitespace-nowrap transition-all ${
+                        className={`hud-btn truncate rounded-xl px-1.5 py-1 text-center text-[10.5px] font-semibold transition-all ${
                           active
                             ? 'bg-[#fff1ee] text-[#240505] shadow-sm'
-                            : 'text-[#ffd9d0]/78 hover:bg-[#fff1ee]/8 hover:text-[#fff1ee]'
+                            : 'text-[#ffd9d0]/75 hover:bg-[#fff1ee]/8 hover:text-[#fff1ee]'
                         }`}
                       >
                         {item.label}
@@ -258,9 +306,9 @@ export function QrShareModal({
                 </div>
 
                 {/* High-contrast TV-scannable QR Card with centered Muscle Emblem */}
-                <div className="mt-4 flex flex-col items-center">
+                <div className="mt-3.5 flex flex-col items-center">
                   <div
-                    className="relative flex h-60 w-60 items-center justify-center overflow-hidden rounded-3xl border-2 bg-[#fff8f6] p-3 shadow-2xl sm:h-64 sm:w-64"
+                    className="relative flex h-56 w-56 items-center justify-center overflow-hidden rounded-3xl border-2 bg-[#fff8f6] p-3 shadow-2xl sm:h-60 sm:w-60"
                     style={{
                       borderColor: `${entry.accent}aa`,
                       boxShadow: `0 16px 38px -10px rgba(8, 1, 1, 0.8), 0 0 28px -6px ${entry.accent}66`,
@@ -270,7 +318,7 @@ export function QrShareModal({
 
                     {/* Centered Project MSI Muscle Logo Emblem */}
                     <div
-                      className="pointer-events-none absolute flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-[#fff8f6] bg-[#240505] p-0.5 shadow-lg"
+                      className="pointer-events-none absolute flex h-11 w-11 items-center justify-center rounded-2xl border-2 border-[#fff8f6] bg-[#240505] p-0.5 shadow-lg"
                       style={{
                         boxShadow: `0 4px 14px rgba(20, 2, 2, 0.45), 0 0 0 2px ${entry.accent}`,
                       }}
@@ -286,7 +334,7 @@ export function QrShareModal({
                   </div>
 
                   {/* Active link caption */}
-                  <div className="mt-3 text-center">
+                  <div className="mt-2.5 text-center">
                     <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#fff1ee]">
                       <Smartphone
                         className="h-3.5 w-3.5"
@@ -294,19 +342,19 @@ export function QrShareModal({
                       />
                       <span>{entry.subtitle}</span>
                     </div>
-                    <div className="font-mono-num mt-0.5 text-[11px] text-[#ffd9d0]/75">
+                    <div className="font-mono-num mt-0.5 break-all text-[10.5px] text-[#ffd9d0]/75">
                       {entry.url}
                     </div>
                   </div>
                 </div>
 
-                {/* Action buttons: Copy Link, Open Live, Download SVG */}
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+                {/* Link Actions: Copy Link, Open Target, Download QR SVG */}
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   <button
                     type="button"
                     data-testid="qr-copy-link"
                     onClick={handleCopy}
-                    className="hud-btn flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/22 bg-[#380909]/90 px-3 py-2 text-xs font-semibold text-[#fff1ee] hover:bg-[#4f0d0d]"
+                    className="hud-btn flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/22 bg-[#380909]/90 px-3 py-1.5 text-xs font-semibold text-[#fff1ee] hover:bg-[#4f0d0d]"
                   >
                     {copied ? (
                       <>
@@ -325,7 +373,7 @@ export function QrShareModal({
                     href={entry.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="hud-btn flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/20 bg-[#260505]/85 px-3 py-2 text-xs font-semibold text-[#ffd9d0] hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]"
+                    className="hud-btn flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/20 bg-[#260505]/85 px-3 py-1.5 text-xs font-semibold text-[#ffd9d0] hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Open</span>
@@ -334,12 +382,57 @@ export function QrShareModal({
                   <a
                     href="./assets/qr-project-msi.svg"
                     download="Project-MSI-QR.svg"
-                    className="hud-btn flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/20 bg-[#260505]/85 px-3 py-2 text-xs font-semibold text-[#ffd9d0] hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]"
+                    className="hud-btn flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd9d0]/20 bg-[#260505]/85 px-2.5 py-1.5 text-xs font-semibold text-[#ffd9d0] hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]"
                     title="Download SVG QR Code"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    <span>SVG</span>
+                    <span>QR</span>
                   </a>
+                </div>
+
+                {/* Dedicated Original Poster (5560x3563) Direct View & Save as PNG / PDF Section */}
+                <div className="mt-3 rounded-2xl border border-[#ffd9d0]/18 bg-[#1b0303]/85 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[11px] font-semibold text-[#fff1ee]">
+                      Original Quality Poster (5560 × 3563 px)
+                    </div>
+                    <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[9.5px] font-bold text-rose-200 uppercase">
+                      Lossless Master
+                    </span>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    <a
+                      href="./assets/CVA-Muscular-System-Original.png"
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="qr-view-original-image"
+                      className="hud-btn flex items-center justify-center gap-1 rounded-xl border border-[#ffd9d0]/20 bg-[#2b0606] px-2 py-2 text-[11px] font-semibold text-[#fff1ee] hover:bg-[#3f0909]"
+                    >
+                      <ImageIcon className="h-3.5 w-3.5 text-[#ffd9d0]" />
+                      <span>Image Only</span>
+                    </a>
+
+                    <a
+                      href="./assets/CVA-Muscular-System-Original.png"
+                      download="CVA-Muscular-System-Original.png"
+                      data-testid="qr-download-png"
+                      className="hud-btn flex items-center justify-center gap-1 rounded-xl border border-emerald-400/35 bg-emerald-500/18 px-2 py-2 text-[11px] font-bold text-[#fff1ee] hover:bg-emerald-500/28"
+                    >
+                      <Download className="h-3.5 w-3.5 text-emerald-300" />
+                      <span>Save PNG</span>
+                    </a>
+
+                    <a
+                      href="./assets/CVA-Muscular-System-Original.pdf"
+                      download="CVA-Muscular-System-Original.pdf"
+                      data-testid="qr-download-pdf"
+                      className="hud-btn flex items-center justify-center gap-1 rounded-xl border border-amber-400/35 bg-amber-500/18 px-2 py-2 text-[11px] font-bold text-[#fff1ee] hover:bg-amber-500/28"
+                    >
+                      <FileDown className="h-3.5 w-3.5 text-amber-300" />
+                      <span>Save PDF</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </TiltCard>
