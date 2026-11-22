@@ -11,6 +11,7 @@ import {
   SECTIONS,
   type Section,
   type SectionId,
+  type SectionSubZone,
 } from '../data/sections';
 import {
   clampCamera,
@@ -57,6 +58,16 @@ export interface UseCameraReturn {
   isCustomView: boolean;
   /** Active section object, or null when on overview */
   activeSection: Section | null;
+  /** Active Level-2 sub-part id inside the active section, or null when at full section fit */
+  activeSubZoneId: string | null;
+  /** Active Level-2 sub-part object inside the active section, or null */
+  activeSubZone: SectionSubZone | null;
+  /** Zooms smoothly into a specific Level-2 sub-part inside the active section (or toggles back out if already active) */
+  goSubZone: (subZoneId: string | null) => void;
+  /** Cycles to the next Level-2 sub-part inside the active section */
+  nextSubZone: () => void;
+  /** Cycles to the previous Level-2 sub-part inside the active section */
+  prevSubZone: () => void;
   /** True while any camera choreography or zoom spring is active */
   isTransitioning: boolean;
   /** Current choreography phase for synchronized effects & HUD orchestration */
@@ -178,6 +189,7 @@ export function useCamera({
   const [activeSectionId, setActiveSectionId] = useState<SectionId | null>(
     initialSectionId,
   );
+  const [activeSubZoneId, setActiveSubZoneId] = useState<string | null>(null);
   const [camera, setCamera] = useState<CameraState>(initialCamera);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [phase, setPhase] = useState<TransitionPhase>('idle');
@@ -620,6 +632,7 @@ export function useCamera({
 
   const resetSectionView = useCallback(() => {
     const currentId = activeIdRef.current;
+    setActiveSubZoneId(null);
     if (!currentId) {
       runZoomOutTimeline(true);
       return;
@@ -636,6 +649,7 @@ export function useCamera({
   const goSection = useCallback(
     (id: SectionId) => {
       const current = activeIdRef.current;
+      setActiveSubZoneId(null);
       if (current && current !== id) {
         runPanThroughTimeline(current, id, undefined, true);
         return;
@@ -650,6 +664,7 @@ export function useCamera({
   );
 
   const goOverview = useCallback(() => {
+    setActiveSubZoneId(null);
     if (activeIdRef.current === null && targetRef.current.scale <= 1.02) {
       return;
     }
@@ -659,6 +674,7 @@ export function useCamera({
   const cycleBy = useCallback(
     (delta: 1 | -1) => {
       const currentId = activeIdRef.current;
+      setActiveSubZoneId(null);
       if (!currentId) {
         const first = delta === 1 ? SECTIONS[0] : SECTIONS[SECTIONS.length - 1];
         runEnterTimeline(first.id, true);
@@ -822,6 +838,17 @@ export function useCamera({
    */
   const focusBbox = useCallback(
     (bbox: readonly [number, number, number, number]) => {
+      const currentId = activeIdRef.current;
+      if (currentId) {
+        const match = SECTION_BY_ID[currentId].subZones.find(
+          (z) =>
+            z.bbox[0] === bbox[0] &&
+            z.bbox[1] === bbox[1] &&
+            z.bbox[2] === bbox[2] &&
+            z.bbox[3] === bbox[3],
+        );
+        setActiveSubZoneId(match ? match.id : null);
+      }
       const nextState = computeBboxCamera(
         bbox,
         viewportRef.current,
@@ -832,6 +859,58 @@ export function useCamera({
     },
     [animateGestureTo],
   );
+
+  const goSubZone = useCallback(
+    (subZoneId: string | null) => {
+      const currentId = activeIdRef.current;
+      if (!currentId || !subZoneId) {
+        resetSectionView();
+        return;
+      }
+      const section = SECTION_BY_ID[currentId];
+      const zone = section.subZones.find((z) => z.id === subZoneId);
+      if (!zone) {
+        resetSectionView();
+        return;
+      }
+      setActiveSubZoneId(zone.id);
+      const nextState = computeBboxCamera(
+        zone.bbox,
+        viewportRef.current,
+        hudVisibleRef.current,
+        sidebarCollapsedRef.current,
+      );
+      animateGestureTo(nextState);
+    },
+    [animateGestureTo, resetSectionView],
+  );
+
+  const cycleSubZone = useCallback(
+    (delta: 1 | -1) => {
+      const currentId = activeIdRef.current;
+      if (!currentId) return;
+      const zones = SECTION_BY_ID[currentId].subZones;
+      if (zones.length === 0) return;
+
+      const curIdx = activeSubZoneId
+        ? zones.findIndex((z) => z.id === activeSubZoneId)
+        : -1;
+      const nextIdx =
+        curIdx === -1
+          ? delta === 1
+            ? 0
+            : zones.length - 1
+          : (curIdx + delta + zones.length) % zones.length;
+      const targetZone = zones[nextIdx];
+      if (targetZone) {
+        goSubZone(targetZone.id);
+      }
+    },
+    [activeSubZoneId, goSubZone],
+  );
+
+  const nextSubZone = useCallback(() => cycleSubZone(1), [cycleSubZone]);
+  const prevSubZone = useCallback(() => cycleSubZone(-1), [cycleSubZone]);
 
   /**
    * Click or double-click inside a zoomed section zooms smoothly into the clicked point
@@ -925,10 +1004,15 @@ export function useCamera({
   useEffect(() => clearChoreography, [clearChoreography]);
 
   const activeSection = activeSectionId ? SECTION_BY_ID[activeSectionId] : null;
+  const activeSubZone =
+    activeSection && activeSubZoneId
+      ? activeSection.subZones.find((z) => z.id === activeSubZoneId) ?? null
+      : null;
 
   // Determine whether the user has zoomed or panned away from the section's default frame
   const isCustomView = (() => {
     if (!activeSection) return camera.scale > 1.03;
+    if (activeSubZoneId !== null) return true;
     const fitCam = computeSectionCamera(
       activeSection,
       viewport,
@@ -950,6 +1034,11 @@ export function useCamera({
     resetSectionView,
     isCustomView,
     activeSection,
+    activeSubZoneId,
+    activeSubZone,
+    goSubZone,
+    nextSubZone,
+    prevSubZone,
     isTransitioning,
     phase,
     lockingSectionId,
