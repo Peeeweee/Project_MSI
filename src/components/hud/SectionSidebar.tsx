@@ -990,7 +990,7 @@ export function SectionSidebar({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="hud-glass pointer-events-auto fixed inset-x-0 bottom-0 z-30 flex flex-col rounded-t-2xl border-x-0 border-b-0 border-t border-[#ffd9d0]/22 px-4 pb-3 pt-2 lg:hidden"
+            className="hud-glass pb-safe pointer-events-auto fixed inset-x-0 bottom-0 z-30 flex flex-col rounded-t-2xl border-x-0 border-b-0 border-t border-[#ffd9d0]/22 px-3 pt-1.5 lg:hidden"
           >
             {/* Sheet expand/collapse handle */}
             <button
@@ -998,7 +998,7 @@ export function SectionSidebar({
               onClick={() => setMobileSheetExpanded((e) => !e)}
               aria-expanded={mobileSheetExpanded}
               aria-label={mobileSheetExpanded ? 'Collapse section sheet' : 'Expand section sheet'}
-              className="mx-auto mb-2 flex items-center gap-1 rounded-full px-3 py-0.5 text-[10px] font-medium text-[#ffd9d0] hover:bg-[#fff1ee]/10"
+              className="mx-auto mb-1.5 flex items-center gap-1 rounded-full px-3 py-0.5 text-[10px] font-medium text-[#ffd9d0] hover:bg-[#fff1ee]/10"
             >
               <span className="h-1 w-8 rounded-full bg-[#ffd9d0]/45" />
               {mobileSheetExpanded ? (
@@ -1009,10 +1009,10 @@ export function SectionSidebar({
             </button>
 
             {/* Compact header row always visible on tablet & mobile */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex items-center justify-between gap-1.5">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
-                  className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
+                  className="font-mono-num flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
                   style={{
                     backgroundColor: section.accent,
                     color: section.badgeText,
@@ -1021,19 +1021,32 @@ export function SectionSidebar({
                   {section.n}
                 </span>
                 <div className="min-w-0 leading-tight">
-                  <div className="font-mono-num text-[9px] font-semibold uppercase tracking-[0.14em] text-[#ffd9d0]">
-                    ZOOMED SECTION
-                  </div>
-                  <div className="font-display truncate text-base font-semibold text-[#fff1ee]">
+                  <div className="font-display truncate text-sm font-semibold text-[#fff1ee]">
                     {section.name}
                   </div>
                   <div className="truncate text-[10px] text-[#ffd9d0]">
-                    Prepared by {section.owner}
+                    {section.owner} · {zoomPercent}%
                   </div>
                 </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={onZoomOut}
+                  className="hud-btn flex h-8 w-8 items-center justify-center rounded-xl border border-[#ffd9d0]/20 bg-[#fff1ee]/8 text-[#fff1ee]"
+                  aria-label="Zoom out"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onZoomIn}
+                  className="hud-btn flex h-8 w-8 items-center justify-center rounded-xl border border-[#ffd9d0]/20 bg-[#fff1ee]/8 text-[#fff1ee]"
+                  aria-label="Zoom in"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
                 <button
                   type="button"
                   onClick={onPrev}
@@ -1056,7 +1069,7 @@ export function SectionSidebar({
                   className="hud-btn flex h-8 items-center gap-1 rounded-xl bg-[#fff1ee] px-2.5 text-xs font-bold text-[#3b0a0a]"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  <span>Overview</span>
+                  <span>Map</span>
                 </button>
               </div>
             </div>
@@ -1070,7 +1083,7 @@ export function SectionSidebar({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-                  className="mt-3 flex flex-col gap-3"
+                  className="touch-scroll-y mt-2.5 flex max-h-[54dvh] flex-col gap-2.5 overflow-y-auto pr-0.5"
                 >
                   <ArtworkMiniMap
                     section={section}
