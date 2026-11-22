@@ -20,6 +20,8 @@ const SHORTCUTS = [
   { keys: ['Scroll'], label: 'Zoom around cursor position' },
   { keys: ['Drag'], label: 'Pan freely while zoomed in' },
   { keys: ['V'], label: 'Switch between Poster Mode and 3D Visual Model' },
+  { keys: ['C'], label: 'Open Evolution Comparison (Fish → Tetrapod → Mammal) & Quiz Mode' },
+  { keys: ['Q'], label: 'Open Mobile Classroom Companion QR Code' },
   { keys: ['F'], label: 'Toggle decolorized emphasis on surrounding sections' },
   { keys: ['H'], label: 'Toggle clean presentation mode (hide HUD)' },
 ];
