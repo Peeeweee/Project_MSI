@@ -4,8 +4,10 @@ import {
   Box,
   Eye,
   EyeOff,
+  GitCompareArrows,
   Keyboard,
   Map,
+  QrCode,
   RotateCcw,
   SlidersHorizontal,
 } from 'lucide-react';
@@ -29,12 +31,16 @@ interface TopBarProps {
   scale: number;
   hudVisible: boolean;
   effectsOpen: boolean;
+  compareOpen: boolean;
+  qrOpen: boolean;
   effectsPreset: EffectsPreset | 'custom';
   onChangeViewMode: (mode: ViewMode) => void;
   onPreload3D?: () => void;
   onResetOverview: () => void;
   onHoverPill: (section: Section | null) => void;
   onSelectPill: (id: SectionId, clickPoint?: { x: number; y: number }) => void;
+  onToggleCompare: () => void;
+  onToggleQr: () => void;
   onToggleEffects: () => void;
   onToggleHud: () => void;
   onOpenShortcuts: () => void;
@@ -53,12 +59,16 @@ export function TopBar({
   scale,
   hudVisible,
   effectsOpen,
+  compareOpen,
+  qrOpen,
   effectsPreset,
   onChangeViewMode,
   onPreload3D,
   onResetOverview,
   onHoverPill,
   onSelectPill,
+  onToggleCompare,
+  onToggleQr,
   onToggleEffects,
   onToggleHud,
   onOpenShortcuts,
@@ -91,12 +101,12 @@ export function TopBar({
       style={{ height: TOP_BAR_HEIGHT }}
       className="hud-topbar relative z-30 flex w-full shrink-0 items-center justify-between gap-1.5 px-2.5 sm:gap-2 sm:px-5"
     >
-      {/* Left: Slim title "MUSCULAR SYSTEM" + subtle subtitle */}
-      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden sm:gap-2.5">
+      {/* Left: Slim title "MUSCULAR SYSTEM" + mode switcher */}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
         <button
           type="button"
           onClick={onResetOverview}
-          className="hud-btn group flex min-w-0 items-center gap-1.5 rounded-full py-1 text-left focus-visible:outline-2 sm:gap-2"
+          className="hud-btn group flex shrink-0 items-center gap-1.5 rounded-full py-1 text-left focus-visible:outline-2 sm:gap-2"
           title="Return to full overview (Esc)"
         >
           <span
@@ -177,7 +187,7 @@ export function TopBar({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 6 }}
               transition={transition}
-              className="hidden items-center gap-1.5 border-l border-[#ffd9d0]/20 pl-2.5 text-xs text-[#ffd9d0] md:inline-flex"
+              className="hidden items-center gap-1.5 border-l border-[#ffd9d0]/20 pl-2.5 text-xs whitespace-nowrap text-[#ffd9d0] 2xl:inline-flex"
             >
               <span className="font-semibold text-[#fff1ee]">
                 {activeSection.name}
@@ -293,6 +303,52 @@ export function TopBar({
             <span className="font-mono-num">{zoomPercent}%</span>
           </button>
         )}
+
+        {/* #4: Evolutionary Homology Comparison modal trigger */}
+        <button
+          type="button"
+          data-testid="compare-trigger"
+          aria-expanded={compareOpen}
+          aria-label="Evolutionary homology comparison"
+          onClick={onToggleCompare}
+          className="hud-btn flex h-7 items-center gap-1 rounded-full border px-2 text-[11px] font-medium transition-colors"
+          style={{
+            backgroundColor: compareOpen
+              ? 'rgba(255, 241, 238, 0.18)'
+              : 'rgba(255, 241, 238, 0.06)',
+            borderColor: compareOpen
+              ? 'rgba(255, 217, 208, 0.45)'
+              : 'rgba(255, 217, 208, 0.18)',
+            color: '#fff1ee',
+          }}
+          title="Evolution Comparison: Fish vs. Amphibian vs. Reptile/Bird vs. Mammal (C)"
+        >
+          <GitCompareArrows className="h-3.5 w-3.5 text-[#ffd9d0]" />
+          <span className="hidden md:inline">Compare</span>
+        </button>
+
+        {/* #5: Mobile Classroom Companion QR Code trigger (kept in top bar, off the home canvas) */}
+        <button
+          type="button"
+          data-testid="qr-trigger"
+          aria-expanded={qrOpen}
+          aria-label="Mobile QR code companion"
+          onClick={onToggleQr}
+          className="hud-btn flex h-7 items-center gap-1 rounded-full border px-2 text-[11px] font-medium transition-colors"
+          style={{
+            backgroundColor: qrOpen
+              ? 'rgba(255, 241, 238, 0.18)'
+              : 'rgba(255, 241, 238, 0.06)',
+            borderColor: qrOpen
+              ? 'rgba(255, 217, 208, 0.45)'
+              : 'rgba(255, 217, 208, 0.18)',
+            color: '#fff1ee',
+          }}
+          title="Mobile QR Code Companion (Q)"
+        >
+          <QrCode className="h-3.5 w-3.5 text-[#ffd9d0]" />
+          <span className="hidden lg:inline">QR</span>
+        </button>
 
         <button
           type="button"
