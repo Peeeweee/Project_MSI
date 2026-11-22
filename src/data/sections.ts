@@ -12,13 +12,13 @@ export interface SubZoneCard {
 
 export interface SectionSubZone {
   readonly id: string;
-  /** Hierarchical sub-part number (e.g. "1.1", "2.4", "4.8") */
+  /** Hierarchical sub-part number (e.g. "2.1".."2.10") */
   readonly code: string;
   readonly label: string;
   readonly detail: string;
   /** Target [x1, y1, x2, y2] in 2403x1540 poster space */
   readonly bbox: readonly [number, number, number, number];
-  /** Optional individual animal specimen cards inside this sub-part for 1-click 750% deep zoom */
+  /** Optional individual animal specimen cards inside this sub-part for 1-click 920% deep zoom */
   readonly cards?: readonly SubZoneCard[];
 }
 
@@ -43,7 +43,7 @@ export interface Section {
   /** Visual centroid [x, y] inside the polygon for keyboard focus badge placement */
   anchor: readonly [number, number];
   summary: string;
-  /** Complete Level-2 interactive sub-parts covering 100% of every diagram in the section */
+  /** Level-2 interactive sub-parts (enabled exclusively for Jenny's Appendicular section) */
   subZones: readonly SectionSubZone[];
 }
 
@@ -51,10 +51,10 @@ export const WORLD_WIDTH = 2403;
 export const WORLD_HEIGHT = 1540;
 
 /** Responsive display artwork (2400w / 1200w) for crisp fast initial paint */
-export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=7';
-export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=7';
+export const FULL_MAP_DISPLAY_2400 = './assets/map-full-2400w.jpg?v=8';
+export const FULL_MAP_DISPLAY_1200 = './assets/map-full-1200w.jpg?v=8';
 /** Full 5560x3563 master artwork loaded lazily on zoom */
-export const FULL_MAP_SRC = './assets/map-full.jpg?v=7';
+export const FULL_MAP_SRC = './assets/map-full.jpg?v=8';
 
 export const SECTIONS: readonly Section[] = [
   {
@@ -64,7 +64,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Hanami',
     fullName: 'Hanna Mae M. Ceniza',
     crop: 'axial.jpg',
-    cropSrc: './assets/axial.jpg?v=4',
+    cropSrc: './assets/axial.jpg?v=8',
     accent: '#2563eb',
     badgeText: '#fff1ee',
     bbox: [0, 802, 1172, 1540],
@@ -72,50 +72,7 @@ export const SECTIONS: readonly Section[] = [
     anchor: [586, 1170],
     summary:
       'Segmented myomeres, epaxial (dorsal) and hypaxial (ventral body-wall layers including birds), and the axial pectoral sling.',
-    subZones: [
-      {
-        id: 'axial-core',
-        code: '1.1',
-        label: 'Axial Core & Somites',
-        detail: 'Horizontal Skeletogenous Septum (HSS) & Trunk Paraxial Somites',
-        bbox: [80, 804, 675, 922],
-      },
-      {
-        id: 'axial-myo',
-        code: '1.2',
-        label: 'Segmented Myomeres',
-        detail: 'Lampreys (M1–M10), Dogfish (W-shaped) & Teleosts (Cone Myomeres)',
-        bbox: [6, 926, 475, 1145],
-      },
-      {
-        id: 'axial-epax-fish',
-        code: '1.3',
-        label: 'Epaxial: Fishes & Salamanders',
-        detail: 'Dorsal Epaxial Myomeres & Necturus Dorsalis Trunci',
-        bbox: [480, 926, 745, 1285],
-      },
-      {
-        id: 'axial-epax-tet',
-        code: '1.4',
-        label: 'Epaxial: Reptiles, Frogs & Birds',
-        detail: 'Transversospinalis, Longissimus, Iliocostalis & Fused Avian/Anuran Spine',
-        bbox: [750, 926, 1168, 1285],
-      },
-      {
-        id: 'axial-hypax',
-        code: '1.5',
-        label: 'Hypaxial & Body-Wall Layers',
-        detail: 'Fishes, Salamanders, Reptiles/Mammals & Avian Intercostals/Obliques',
-        bbox: [6, 1150, 545, 1536],
-      },
-      {
-        id: 'axial-sling',
-        code: '1.6',
-        label: 'Axial Pectoral Sling',
-        detail: 'Bridge to Appendicular: Levator Scapulae, Serratus Ventralis & Rhomboideus',
-        bbox: [550, 1290, 1085, 1536],
-      },
-    ],
+    subZones: [],
   },
   {
     id: 'appendicular',
@@ -124,7 +81,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=7',
+    cropSrc: './assets/appendicular.jpg?v=8',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
@@ -138,10 +95,10 @@ export const SECTIONS: readonly Section[] = [
         code: '2.1',
         label: 'Paired Fins: Teleosts & Sharks',
         detail: '2 Diagrams · Teleost Abductor/Adductor vs. Shark Propterygium & Pectoral Fin',
-        bbox: [4, 4, 435, 195],
+        bbox: [6, 6, 394, 166],
         cards: [
-          { id: 'fins-teleosts', label: 'Teleosts', bbox: [4, 18, 200, 175] },
-          { id: 'fins-sharks', label: 'Sharks', bbox: [198, 18, 435, 192] },
+          { id: 'fins-teleosts', label: 'Teleosts', bbox: [6, 10, 192, 150] },
+          { id: 'fins-sharks', label: 'Sharks', bbox: [195, 10, 394, 165] },
         ],
       },
       {
@@ -149,102 +106,83 @@ export const SECTIONS: readonly Section[] = [
         code: '2.2',
         label: 'Embryonic Dev I: Amniotes & Teleosts',
         detail: '2 Diagrams · Derived Migratory Mesenchyme Limb/Fin Bud Mechanism',
-        bbox: [440, 4, 788, 202],
+        bbox: [406, 6, 797, 173],
         cards: [
-          { id: 'dev-amniotes', label: 'Amniotes', bbox: [440, 18, 612, 198] },
-          { id: 'dev-teleosts', label: 'Teleosts', bbox: [610, 18, 785, 198] },
+          { id: 'dev-amniotes', label: 'Amniotes', bbox: [406, 6, 594, 173] },
+          { id: 'dev-teleosts', label: 'Teleosts', bbox: [604, 6, 797, 173] },
         ],
       },
       {
         id: 'append-dev-2',
         code: '2.3',
-        label: 'Embryonic Dev II: Sharks & Hub',
-        detail: '2 Items · Chondrichthyans (Primitive Myotomal Extension) & Development Hub',
-        bbox: [648, 4, 1028, 285],
-        cards: [
-          { id: 'dev-sharks', label: 'Chondrichthyans', bbox: [783, 18, 965, 198] },
-          { id: 'dev-hub', label: 'Development Hub', bbox: [648, 175, 1025, 285] },
-        ],
-      },
-      {
-        id: 'append-core',
-        code: '2.4',
-        label: 'Appendicular Core & Somites',
-        detail: 'Pectoral/Pelvic Girdle Hubs, Appendicular Musculature & Trunk Paraxial Somites',
-        bbox: [485, 206, 1030, 565],
+        label: 'Embryonic Dev II: Chondrichthyans',
+        detail: '1 Diagram · Primitive Direct Myotomal Extension Fin Bud Mechanism',
+        bbox: [802, 6, 1010, 173],
       },
       {
         id: 'append-fore-1',
-        code: '2.5',
+        code: '2.4',
         label: 'Forelimb I: Amphibians & Reptiles',
-        detail: '2 Diagrams · Tetrapod 4-Source Forelimb in Salamanders (Necturus) & Reptiles',
-        bbox: [4, 206, 338, 374],
+        detail: '2 Diagrams · Salamander (Necturus) & Reptile Superficial/Deep Forelimb',
+        bbox: [10, 268, 315, 369],
         cards: [
-          { id: 'fore-amphibians', label: 'Amphibians', bbox: [10, 270, 160, 368] },
-          { id: 'fore-reptiles', label: 'Reptiles', bbox: [162, 265, 320, 372] },
+          { id: 'fore-amphibians', label: 'Amphibians', bbox: [10, 270, 156, 368] },
+          { id: 'fore-reptiles', label: 'Reptiles', bbox: [160, 268, 315, 369] },
         ],
       },
       {
         id: 'append-fore-2',
-        code: '2.6',
+        code: '2.5',
         label: 'Forelimb II: Avians & Mammals',
-        detail: '2 Diagrams · Pigeon Wing (Dorsal/Ventral) & Domestic Cat Forelimb Musculature',
-        bbox: [4, 375, 338, 494],
+        detail: '2 Diagrams · Pigeon Wing (Dorsal/Ventral) & Domestic Cat Forelimb',
+        bbox: [3, 376, 315, 483],
         cards: [
-          { id: 'fore-avians', label: 'Avians', bbox: [4, 378, 165, 488] },
-          { id: 'fore-mammals', label: 'Mammals', bbox: [170, 385, 320, 485] },
+          { id: 'fore-avians', label: 'Avians', bbox: [3, 376, 162, 483] },
+          { id: 'fore-mammals', label: 'Mammals', bbox: [168, 382, 315, 480] },
         ],
       },
       {
         id: 'append-pelv-sources',
-        code: '2.7',
-        label: 'Pelvic (3-Source) & Shark Fin',
-        detail: '2 Items · Tetrapod 3-Source Pelvic Musculature & Chondrichthyan Pelvic Fin',
-        bbox: [340, 245, 620, 565],
-        cards: [
-          { id: 'pelv-sources', label: 'Tetrapods (3 Sources)', bbox: [340, 245, 495, 505] },
-          { id: 'pelv-shark', label: 'Chondrichthyans', bbox: [435, 385, 575, 565] },
-        ],
+        code: '2.6',
+        label: 'Pelvic Fin: Chondrichthyans',
+        detail: '1 Diagram · Shark Pelvic Fin: Epaxialis, Adductor Superficialis & Puboischiac Bar',
+        bbox: [526, 368, 656, 563],
       },
       {
         id: 'append-hind-1',
-        code: '2.8',
+        code: '2.7',
         label: 'Hindlimb I: Amphibians & Avians',
         detail: '2 Diagrams · Frog & Bird Pelvic Hindlimb Musculature (Lateral & Medial Views)',
-        bbox: [4, 496, 302, 622],
+        bbox: [6, 508, 301, 623],
         cards: [
-          { id: 'hind-amphibians', label: 'Amphibians', bbox: [4, 512, 152, 620] },
-          { id: 'hind-avians', label: 'Avians', bbox: [154, 512, 300, 620] },
+          { id: 'hind-amphibians', label: 'Amphibians', bbox: [6, 510, 150, 622] },
+          { id: 'hind-avians', label: 'Avians', bbox: [154, 512, 301, 622] },
         ],
       },
       {
         id: 'append-hind-2',
-        code: '2.9',
+        code: '2.8',
         label: 'Hindlimb II: Mammals (Cat)',
-        detail: '2 Views · Mammalian Lateral & Medial Pelvic Hindlimb Musculature',
-        bbox: [303, 496, 468, 622],
+        detail: '1 Double-View Diagram · Mammalian Lateral & Medial Pelvic Hindlimb',
+        bbox: [303, 499, 467, 623],
       },
       {
         id: 'append-spec-1',
-        code: '2.10',
+        code: '2.9',
         label: 'Specializations I: Amphibians & Avians',
         detail: '2 Diagrams · Saltatorial Locomotion (Frog) vs. Flight Adaptation (Pigeon)',
-        bbox: [4, 642, 376, 800],
+        bbox: [20, 650, 366, 800],
         cards: [
-          { id: 'spec-amphibians', label: 'Amphibians (Saltatorial)', bbox: [18, 655, 196, 798] },
-          { id: 'spec-avians', label: 'Avians (Flight)', bbox: [212, 655, 368, 798] },
+          { id: 'spec-amphibians', label: 'Amphibians (Saltatorial)', bbox: [20, 652, 192, 800] },
+          { id: 'spec-avians', label: 'Avians (Flight)', bbox: [212, 652, 366, 800] },
         ],
       },
       {
         id: 'append-spec-2',
-        code: '2.11',
-        label: 'Specializations II: Ungulates & Hub',
-        detail: '2 Items · Cursorial Locomotion (Horse) & Tetrapod Specializations Hub',
-        bbox: [378, 575, 685, 800],
-        cards: [
-          { id: 'spec-ungulates', label: 'Ungulates (Cursorial)', bbox: [388, 646, 522, 796] },
-          { id: 'spec-hub', label: 'Specializations Hub', bbox: [465, 575, 685, 678] },
-        ],
+        code: '2.10',
+        label: 'Specializations II: Ungulates (Horse)',
+        detail: '1 Diagram · Cursorial Locomotion Adaptation in Ungulates',
+        bbox: [387, 640, 537, 800],
       },
     ],
   },
@@ -255,7 +193,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Reymark',
     fullName: 'Reymark P. Villarosa',
     crop: 'hypobranchial.jpg',
-    cropSrc: './assets/hypobranchial.jpg?v=4',
+    cropSrc: './assets/hypobranchial.jpg?v=8',
     accent: '#7c3aed',
     badgeText: '#fff1ee',
     bbox: [1040, 0, 2006, 802],
@@ -263,43 +201,7 @@ export const SECTIONS: readonly Section[] = [
     anchor: [1450, 365],
     summary:
       'Tongue musculature; somitic throat development, cervical spinal innervation, position & function, and comparative vertebrate pattern.',
-    subZones: [
-      {
-        id: 'hypo-comp-1',
-        code: '3.1',
-        label: 'Pattern: Fish, Frog & Lizard',
-        detail: 'Teleost Coracomandibularis, Frog Tongue & Lizard Hyoid Apparatus',
-        bbox: [1044, 4, 1515, 212],
-      },
-      {
-        id: 'hypo-comp-2',
-        code: '3.2',
-        label: 'Pattern: Bird & Mammal Tongue',
-        detail: 'Pigeon Entoglossal Straps & Rat Stylohyoideus, Digastricus & Genioglossus',
-        bbox: [1520, 4, 1998, 212],
-      },
-      {
-        id: 'hypo-inn',
-        code: '3.3',
-        label: 'Innervation, Dev & Function',
-        detail: 'Cervical Spinal Nerves, Ventral Throat Myotomes & Gill-Arch Position',
-        bbox: [1100, 216, 1998, 435],
-      },
-      {
-        id: 'hypo-cranial',
-        code: '3.4',
-        label: 'Somites & Cranial Head',
-        detail: 'Trunk Paraxial Somites & Cranial Musculature Anatomical Head',
-        bbox: [1485, 440, 1798, 798],
-      },
-      {
-        id: 'hypo-title',
-        code: '3.5',
-        label: 'Central Title & Group 2',
-        detail: 'Muscular System Fusiform Emblem & Group 2 Presenters',
-        bbox: [1044, 440, 1480, 798],
-      },
-    ],
+    subZones: [],
   },
   {
     id: 'branchiomeric',
@@ -308,7 +210,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Kurt',
     fullName: 'Kurt Hendrick P. Saromines',
     crop: 'branchiomeric.jpg',
-    cropSrc: './assets/branchiomeric.jpg?v=4',
+    cropSrc: './assets/branchiomeric.jpg?v=8',
     accent: '#d97706',
     badgeText: '#160303',
     bbox: [1172, 0, 2403, 1540],
@@ -317,64 +219,7 @@ export const SECTIONS: readonly Section[] = [
     anchor: [1920, 1080],
     summary:
       'Derived from the pharyngeal arches: mandibular, hyoid and branchial arches (cucullaris & facial muscles), plus extrinsic eye muscles (CN III, IV, VI).',
-    subZones: [
-      {
-        id: 'branch-eye',
-        code: '4.1',
-        label: 'Extrinsic Eye Muscles',
-        detail: 'Preotic Cranial Paraxial Mesoderm: 6 Ocular Rectus & Oblique Muscles',
-        bbox: [1985, 8, 2398, 392],
-      },
-      {
-        id: 'branch-cn',
-        code: '4.2',
-        label: 'Ocular Nerves (CN III, IV, VI)',
-        detail: 'Oculomotor (CN III), Trochlear (CN IV) & Abducens (CN VI) Innervation',
-        bbox: [1812, 396, 2398, 592],
-      },
-      {
-        id: 'branch-adductor',
-        code: '4.3',
-        label: 'Mandibular: Adductor Mandibulae',
-        detail: 'Sharks, Fishes, Tetrapods & Mammalian Temporalis, Masseter & Pterygoid',
-        bbox: [1812, 596, 2398, 905],
-      },
-      {
-        id: 'branch-intermand',
-        code: '4.4',
-        label: 'Mandibular: Intermandibularis & Jaw',
-        detail: 'Intermandibularis (Mylohyoid/Digastric) & Levator Palatoquadrati',
-        bbox: [1780, 910, 2398, 1285],
-      },
-      {
-        id: 'branch-somitomeres',
-        code: '4.5',
-        label: 'Somitomeres & Gill Constrictors',
-        detail: 'Cranial Paraxial Mesoderm & Tetrapod/Shark/Fish Branchial Constrictors',
-        bbox: [1245, 880, 1775, 1285],
-      },
-      {
-        id: 'branch-cucullaris',
-        code: '4.6',
-        label: 'Cucullaris (Fishes vs. Amniotes)',
-        detail: 'Fish Cucullaris vs. Amniote Mastoid & Trapezius Muscle Complex',
-        bbox: [1175, 1085, 1345, 1536],
-      },
-      {
-        id: 'branch-facial',
-        code: '4.7',
-        label: 'Interhyoideus & Facial Muscles',
-        detail: 'Branchial Arches, Interhyoideus & Mammalian Facial Expression Muscles',
-        bbox: [1350, 1290, 1840, 1536],
-      },
-      {
-        id: 'branch-hyoid',
-        code: '4.8',
-        label: 'Hyoid Arch Constrictors',
-        detail: 'Levator Hyomandibulae, Levator Operculi, Depressor Mandibulae & Stapedius',
-        bbox: [1845, 1290, 2398, 1536],
-      },
-    ],
+    subZones: [],
   },
 ] as const;
 
