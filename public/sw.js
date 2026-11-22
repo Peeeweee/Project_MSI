@@ -1,4 +1,4 @@
-const CACHE_NAME = 'project-msi-offline-v7';
+const CACHE_NAME = 'project-msi-offline-v8';
 
 const CORE_SHELL_URLS = [
   './',
@@ -9,8 +9,8 @@ const CORE_SHELL_URLS = [
   './favicon.ico?v=5',
   './apple-touch-icon.png?v=5',
   './assets/qr-project-msi.svg',
-  './assets/map-full-1200w.jpg?v=7',
-  './assets/map-full-2400w.jpg?v=7',
+  './assets/map-full-1200w.jpg?v=8',
+  './assets/map-full-2400w.jpg?v=8',
   './assets/clades/shark.svg',
   './assets/clades/teleost.svg',
   './assets/clades/amphibian.svg',
