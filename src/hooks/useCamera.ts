@@ -842,12 +842,21 @@ export function useCamera({
       if (currentId) {
         const match = SECTION_BY_ID[currentId].subZones.find(
           (z) =>
-            z.bbox[0] === bbox[0] &&
-            z.bbox[1] === bbox[1] &&
-            z.bbox[2] === bbox[2] &&
-            z.bbox[3] === bbox[3],
+            (z.bbox[0] === bbox[0] &&
+              z.bbox[1] === bbox[1] &&
+              z.bbox[2] === bbox[2] &&
+              z.bbox[3] === bbox[3]) ||
+            z.cards?.some(
+              (c) =>
+                c.bbox[0] === bbox[0] &&
+                c.bbox[1] === bbox[1] &&
+                c.bbox[2] === bbox[2] &&
+                c.bbox[3] === bbox[3],
+            ),
         );
-        setActiveSubZoneId(match ? match.id : null);
+        if (match) {
+          setActiveSubZoneId(match.id);
+        }
       }
       const nextState = computeBboxCamera(
         bbox,
