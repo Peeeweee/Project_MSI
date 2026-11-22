@@ -42,7 +42,6 @@ export function InteractiveOverlay({
   hoveredSubZoneId,
   lockingSectionId,
   idleHintSectionId,
-  emphasizeActive = false,
   isDragging,
   onHoverSection,
   onHoverSubZone,
@@ -73,8 +72,6 @@ export function InteractiveOverlay({
   };
 
   const activeSection = activeSectionId ? SECTION_BY_ID[activeSectionId] : null;
-  const activeSubZone =
-    activeSection?.subZones?.find((z) => z.id === activeSubZoneId) ?? null;
 
   return (
     <svg
@@ -190,35 +187,7 @@ export function InteractiveOverlay({
               </>
             )}
 
-            {/* Crisp active-section emphasis frame when non-current parts are decolorized */}
-            {isCurrentActive && emphasizeActive && !activeSubZone && (
-              <>
-                <motion.polygon
-                  points={section.polygon}
-                  fill="none"
-                  stroke={section.accent}
-                  strokeWidth={3.2}
-                  strokeLinejoin="round"
-                  vectorEffect="non-scaling-stroke"
-                  pointerEvents="none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.92 }}
-                  transition={hoverTransition}
-                />
-                <motion.polygon
-                  points={section.polygon}
-                  fill="none"
-                  stroke="#fff1ee"
-                  strokeWidth={1.1}
-                  strokeLinejoin="round"
-                  vectorEffect="non-scaling-stroke"
-                  pointerEvents="none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.52 }}
-                  transition={hoverTransition}
-                />
-              </>
-            )}
+            {/* No resting colored polygon border when zoomed into a section — keep artwork 100% clean */}
 
             {/* Phase 1 one-shot target pulse flash along the locked polygon edge */}
             {isLocking && !prefersReducedMotion && (
@@ -276,18 +245,7 @@ export function InteractiveOverlay({
         );
       })}
 
-      {/* Level-2 Sub-Part Spotlight Veil when zoomed into a specific sub-part */}
-      {activeSection && activeSubZone && (
-        <path
-          data-testid="subzone-spotlight-veil"
-          d={`M0,0 H${WORLD_WIDTH} V${WORLD_HEIGHT} H0 Z M${activeSubZone.bbox[0]},${activeSubZone.bbox[1]} V${activeSubZone.bbox[3]} H${activeSubZone.bbox[2]} V${activeSubZone.bbox[1]} Z`}
-          fillRule="evenodd"
-          fill="rgba(16, 2, 2, 0.44)"
-          pointerEvents="none"
-        />
-      )}
-
-      {/* Level-2 Interactive Sub-Part Hotspots inside the active section */}
+      {/* Level-2 Interactive Sub-Part Hotspots inside the active section (100% invisible at rest; ONLY highlights the hovered sub-part) */}
       {activeSection &&
         lockingSectionId === null &&
         (activeSection.subZones ?? []).map((subZone) => {
@@ -297,119 +255,49 @@ export function InteractiveOverlay({
           const isSubActive = activeSubZoneId === subZone.id;
           const isSubHovered =
             !isDragging &&
+            !isSubActive &&
             (hoveredSubZoneId === subZone.id || focusedSubId === subZone.id);
-          const isAnySubActive = activeSubZoneId !== null;
 
           return (
             <g
               key={subZone.id}
               data-subzone-group={subZone.id}
             >
-              {/* Soft hover tint or active spotlight border */}
-              {(isSubHovered || isSubActive || !isAnySubActive) && (
+              {/* ONLY show outline when actively hovering over a sub-part */}
+              {isSubHovered && (
                 <>
-                  {/* Hover fill tint */}
                   <rect
                     x={x1}
                     y={y1}
                     width={w}
                     height={h}
                     rx={12}
-                    fill={
-                      isSubHovered && !isSubActive
-                        ? `${activeSection.accent}18`
-                        : 'transparent'
-                    }
+                    fill={`${activeSection.accent}12`}
                     stroke={activeSection.accent}
-                    strokeWidth={
-                      isSubActive ? 2.8 : isSubHovered ? 2.8 : 1.35
-                    }
-                    strokeDasharray={
-                      isSubActive ? undefined : isSubHovered ? '14 8' : '8 7'
-                    }
+                    strokeWidth={2.4}
+                    strokeDasharray="14 8"
                     vectorEffect="non-scaling-stroke"
                     pointerEvents="none"
-                    className={
-                      isSubHovered && !isSubActive ? 'edge-glow-dash' : undefined
-                    }
+                    className="edge-glow-dash"
                     style={{
-                      opacity: isSubActive
-                        ? 0.96
-                        : isSubHovered
-                          ? 0.94
-                          : isAnySubActive
-                            ? 0.18
-                            : 0.36,
-                      transition: 'opacity 160ms ease-out',
+                      opacity: 0.9,
+                      transition: 'opacity 150ms ease-out',
                     }}
                   />
-
-                  {/* Crisp inner highlight line on active or hovered sub-part */}
-                  {(isSubHovered || isSubActive) && (
-                    <rect
-                      x={x1}
-                      y={y1}
-                      width={w}
-                      height={h}
-                      rx={12}
-                      fill="none"
-                      stroke="#fff1ee"
-                      strokeWidth={1}
-                      vectorEffect="non-scaling-stroke"
-                      pointerEvents="none"
-                      style={{
-                        opacity: isSubActive ? 0.55 : 0.42,
-                      }}
-                    />
-                  )}
-                </>
-              )}
-
-              {/* Compact Top-Left Corner Code Badge (e.g. 2.1, 2.4) in Level-1 Section View or when hovering another sub-part */}
-              {!isSubActive && (!isAnySubActive || isSubHovered) && (
-                <g
-                  transform={`translate(${x1 + 8}, ${y1 + 8})`}
-                  pointerEvents="none"
-                  style={{
-                    opacity: isSubHovered ? 1 : 0.82,
-                    transition: 'opacity 150ms ease-out',
-                  }}
-                >
                   <rect
-                    x={0}
-                    y={0}
-                    width={isSubHovered ? Math.min(w - 16, Math.max(40, subZone.code.length * 9 + 18)) : 38}
-                    height={21}
-                    rx={6}
-                    fill={
-                      isSubHovered
-                        ? activeSection.accent
-                        : 'rgba(26, 4, 4, 0.88)'
-                    }
-                    stroke={
-                      isSubHovered
-                        ? '#fff1ee'
-                        : activeSection.accent
-                    }
-                    strokeWidth={1.1}
+                    x={x1}
+                    y={y1}
+                    width={w}
+                    height={h}
+                    rx={12}
+                    fill="none"
+                    stroke="#fff1ee"
+                    strokeWidth={0.9}
                     vectorEffect="non-scaling-stroke"
+                    pointerEvents="none"
+                    style={{ opacity: 0.38 }}
                   />
-                  <text
-                    x={19}
-                    y={14.5}
-                    textAnchor="middle"
-                    fill={
-                      isSubHovered
-                        ? activeSection.badgeText
-                        : '#fff1ee'
-                    }
-                    fontSize="11"
-                    fontWeight="700"
-                    fontFamily="JetBrains Mono, monospace"
-                  >
-                    {subZone.code}
-                  </text>
-                </g>
+                </>
               )}
 
               {/* Interactive Sub-Part Hit Target */}
