@@ -4,6 +4,12 @@ export type SectionId =
   | 'hypobranchial'
   | 'branchiomeric';
 
+export interface SubZoneCard {
+  readonly id: string;
+  readonly label: string;
+  readonly bbox: readonly [number, number, number, number];
+}
+
 export interface SectionSubZone {
   readonly id: string;
   /** Hierarchical sub-part number (e.g. "1.1", "2.4", "4.8") */
@@ -12,6 +18,8 @@ export interface SectionSubZone {
   readonly detail: string;
   /** Target [x1, y1, x2, y2] in 2403x1540 poster space */
   readonly bbox: readonly [number, number, number, number];
+  /** Optional individual animal specimen cards inside this sub-part for 1-click 750% deep zoom */
+  readonly cards?: readonly SubZoneCard[];
 }
 
 export interface Section {
@@ -131,6 +139,10 @@ export const SECTIONS: readonly Section[] = [
         label: 'Paired Fins: Teleosts & Sharks',
         detail: 'Abductor & Adductor Superficialis/Profundus, Arrectors & Propterygium',
         bbox: [4, 4, 435, 195],
+        cards: [
+          { id: 'fins-teleosts', label: 'Teleosts', bbox: [4, 18, 200, 175] },
+          { id: 'fins-sharks', label: 'Sharks', bbox: [198, 18, 435, 192] },
+        ],
       },
       {
         id: 'append-dev',
@@ -138,6 +150,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Embryonic Fin/Limb Development',
         detail: 'Amniotes & Teleosts (Derived Migratory) vs. Chondrichthyans (Primitive)',
         bbox: [440, 4, 965, 202],
+        cards: [
+          { id: 'dev-amniotes', label: 'Amniotes', bbox: [440, 18, 612, 198] },
+          { id: 'dev-teleosts', label: 'Teleosts', bbox: [610, 18, 785, 198] },
+          { id: 'dev-sharks', label: 'Chondrichthyans', bbox: [783, 18, 965, 198] },
+        ],
       },
       {
         id: 'append-core',
@@ -152,6 +169,12 @@ export const SECTIONS: readonly Section[] = [
         label: 'Forelimb (4-Source Tetrapods)',
         detail: 'Amphibians, Reptiles, Avians & Mammals Pectoral Girdle & Forelimb',
         bbox: [4, 210, 350, 492],
+        cards: [
+          { id: 'fore-amphibians', label: 'Amphibians', bbox: [10, 270, 160, 368] },
+          { id: 'fore-reptiles', label: 'Reptiles', bbox: [162, 265, 320, 372] },
+          { id: 'fore-avians', label: 'Avians', bbox: [4, 378, 165, 488] },
+          { id: 'fore-mammals', label: 'Mammals', bbox: [170, 385, 320, 485] },
+        ],
       },
       {
         id: 'append-pelv-sources',
@@ -166,6 +189,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Hindlimb Clades',
         detail: 'Amphibians, Avians & Mammals Pelvic Hindlimb Musculature',
         bbox: [4, 496, 465, 622],
+        cards: [
+          { id: 'hind-amphibians', label: 'Amphibians', bbox: [4, 512, 152, 620] },
+          { id: 'hind-avians', label: 'Avians', bbox: [154, 512, 300, 620] },
+          { id: 'hind-mammals', label: 'Mammals', bbox: [302, 505, 465, 620] },
+        ],
       },
       {
         id: 'append-spec',
@@ -173,6 +201,11 @@ export const SECTIONS: readonly Section[] = [
         label: 'Tetrapod Specializations',
         detail: 'Amphibians (Saltatorial), Avians (Flight) & Ungulates (Cursorial)',
         bbox: [4, 626, 643, 800],
+        cards: [
+          { id: 'spec-amphibians', label: 'Amphibians', bbox: [18, 655, 196, 798] },
+          { id: 'spec-avians', label: 'Avians', bbox: [212, 655, 368, 798] },
+          { id: 'spec-ungulates', label: 'Ungulates', bbox: [388, 646, 522, 796] },
+        ],
       },
     ],
   },
