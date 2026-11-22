@@ -23,7 +23,7 @@ interface TrueResCanvasProps {
 }
 
 const ORIGINAL_LOSSLESS_PNG = './assets/CVA-Muscular-System-Original.png';
-const SUBPART_CACHE_VER = '?v=10';
+const SUBPART_CACHE_VER = '?v=11';
 
 // Shared in-memory cache of decoded Image elements so images never reload across re-renders
 const imageCache = new Map<string, HTMLImageElement>();
