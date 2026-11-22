@@ -164,6 +164,14 @@ export default function App() {
     setIdleHintSectionId(null);
   }, []);
 
+  // Preload 3D stage chunk after initial paint so mobile touch devices switch modes with zero Suspense delay
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      preloadThreeDAssets();
+    }, 650);
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Dismiss intro cleanly if reduced motion is enabled or intro toggle is turned off
   useEffect(() => {
     if (prefersReducedMotion || !effects.intro) {
@@ -786,34 +794,36 @@ export default function App() {
               transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               className="relative flex min-h-0 flex-1 flex-col"
             >
-              <Suspense
-                fallback={
-                  <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-                    <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#ffd9d0]/25 border-t-[#ffd9d0]" />
-                    <div className="font-display text-sm font-semibold text-[#fff1ee]">
-                      Preparing 3D Anatomical Stage…
+              <div className="relative flex min-h-0 flex-1 flex-col">
+                <Suspense
+                  fallback={
+                    <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+                      <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#ffd9d0]/25 border-t-[#ffd9d0]" />
+                      <div className="font-display text-sm font-semibold text-[#fff1ee]">
+                        Preparing 3D Anatomical Stage…
+                      </div>
                     </div>
-                  </div>
-                }
-              >
-                <ThreeDVisualStage
-                  stageViewport={stageViewport}
-                  activeSection={activeSection}
-                  cardTiltEnabled={effects.cardTilt}
-                  requestedVertebrateId={requestedVertebrateId}
-                  onSelectSection={(id) => {
-                    if (id) {
-                      goSection(id);
-                    } else {
-                      goOverview();
-                    }
-                  }}
-                  onPrev={prev}
-                  onNext={next}
-                  onSwitchToPoster={() => handleChangeViewMode('poster')}
-                  onHoverSound={handleHoverSound}
-                />
-              </Suspense>
+                  }
+                >
+                  <ThreeDVisualStage
+                    stageViewport={stageViewport}
+                    activeSection={activeSection}
+                    cardTiltEnabled={effects.cardTilt}
+                    requestedVertebrateId={requestedVertebrateId}
+                    onSelectSection={(id) => {
+                      if (id) {
+                        goSection(id);
+                      } else {
+                        goOverview();
+                      }
+                    }}
+                    onPrev={prev}
+                    onNext={next}
+                    onSwitchToPoster={() => handleChangeViewMode('poster')}
+                    onHoverSound={handleHoverSound}
+                  />
+                </Suspense>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
