@@ -1,48 +1,59 @@
 import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
+  SECTION_BY_ID,
   SECTIONS,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   type Section,
   type SectionId,
+  type SectionSubZone,
 } from '../../data/sections';
 import { HOVER_SPRING, pickTransition } from '../../lib/springs';
 
 interface InteractiveOverlayProps {
   activeSectionId: SectionId | null;
+  activeSubZoneId: string | null;
   hoveredSectionId: SectionId | null;
+  hoveredSubZoneId: string | null;
   lockingSectionId: SectionId | null;
   idleHintSectionId: SectionId | null;
   emphasizeActive?: boolean;
   isDragging: boolean;
   onHoverSection: (section: Section | null, pointer?: { x: number; y: number }) => void;
+  onHoverSubZone: (subZone: SectionSubZone | null, pointer?: { x: number; y: number }) => void;
   onFocusSectionKeyboard: (section: Section | null) => void;
   onSelectSection: (id: SectionId, clickPoint?: { x: number; y: number }) => void;
+  onSelectSubZone: (subZoneId: string | null) => void;
 }
 
 /**
- * Exact 2403x1540 SVG hotspot overlay aligned 1:1 with map-full.jpg.
+ * Exact 2403x1540 SVG 2-level hotspot overlay aligned 1:1 with map-full.jpg.
  *
- * Performance & Accessibility:
- * - Only mounts the blurred SVG filter polygon while a section is actively
- *   hovered/focused/locked/hinted so camera zoom stays 100% compositor-only.
- * - Full keyboard navigation with crisp high-contrast visible focus rings.
+ * - Level 0 (Overview): 4 main section polygons (1 Axial, 2 Appendicular, 3 Hypobranchial, 4 Branchiomeric).
+ * - Level 1 (Section View) & Level 2 (Sub-Part Deep Zoom): 26 precision sub-part hotspots (1.1..4.8)
+ *   covering 100% of every section so users can hover and click any specific diagram cluster to zoom in,
+ *   and click again (or press Esc) to zoom smoothly back out.
  */
 export function InteractiveOverlay({
   activeSectionId,
+  activeSubZoneId,
   hoveredSectionId,
+  hoveredSubZoneId,
   lockingSectionId,
   idleHintSectionId,
   emphasizeActive = false,
   isDragging,
   onHoverSection,
+  onHoverSubZone,
   onFocusSectionKeyboard,
   onSelectSection,
+  onSelectSubZone,
 }: InteractiveOverlayProps) {
   const prefersReducedMotion = useReducedMotion();
   const hoverTransition = pickTransition(HOVER_SPRING, prefersReducedMotion);
   const [focusedId, setFocusedId] = useState<SectionId | null>(null);
+  const [focusedSubId, setFocusedSubId] = useState<string | null>(null);
 
   const handleKeyDown = (e: KeyboardEvent<SVGPolygonElement>, id: SectionId) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -51,13 +62,27 @@ export function InteractiveOverlay({
     }
   };
 
+  const handleSubKeyDown = (
+    e: KeyboardEvent<SVGRectElement>,
+    subZoneId: string,
+  ) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelectSubZone(activeSubZoneId === subZoneId ? null : subZoneId);
+    }
+  };
+
+  const activeSection = activeSectionId ? SECTION_BY_ID[activeSectionId] : null;
+  const activeSubZone =
+    activeSection?.subZones?.find((z) => z.id === activeSubZoneId) ?? null;
+
   return (
     <svg
       viewBox={`0 0 ${WORLD_WIDTH} ${WORLD_HEIGHT}`}
       preserveAspectRatio="none"
       className="absolute inset-0 h-full w-full overflow-visible"
       role="group"
-      aria-label="Interactive muscular system sections"
+      aria-label="Interactive muscular system sections and sub-parts"
     >
       <defs>
         <filter
@@ -166,7 +191,7 @@ export function InteractiveOverlay({
             )}
 
             {/* Crisp active-section emphasis frame when non-current parts are decolorized */}
-            {isCurrentActive && emphasizeActive && (
+            {isCurrentActive && emphasizeActive && !activeSubZone && (
               <>
                 <motion.polygon
                   points={section.polygon}
@@ -212,15 +237,15 @@ export function InteractiveOverlay({
               />
             )}
 
-            {/* Invisible interactive hit target (tap, click, and keyboard focusable) */}
+            {/* Invisible interactive hit target for Level-0 / non-active sections */}
             <polygon
               data-testid={`hotspot-${section.id}`}
               points={section.polygon}
               fill="transparent"
               stroke="transparent"
               strokeWidth={0}
-              pointerEvents="auto"
-              tabIndex={0}
+              pointerEvents={isCurrentActive ? 'none' : 'auto'}
+              tabIndex={isCurrentActive ? -1 : 0}
               role="button"
               aria-label={`Zoom into ${section.name} musculature, prepared by ${section.owner}`}
               aria-pressed={isCurrentActive}
@@ -250,6 +275,190 @@ export function InteractiveOverlay({
           </g>
         );
       })}
+
+      {/* Level-2 Sub-Part Spotlight Veil when zoomed into a specific sub-part */}
+      {activeSection && activeSubZone && (
+        <path
+          data-testid="subzone-spotlight-veil"
+          d={`M0,0 H${WORLD_WIDTH} V${WORLD_HEIGHT} H0 Z M${activeSubZone.bbox[0]},${activeSubZone.bbox[1]} V${activeSubZone.bbox[3]} H${activeSubZone.bbox[2]} V${activeSubZone.bbox[1]} Z`}
+          fillRule="evenodd"
+          fill="rgba(16, 2, 2, 0.44)"
+          pointerEvents="none"
+        />
+      )}
+
+      {/* Level-2 Interactive Sub-Part Hotspots inside the active section */}
+      {activeSection &&
+        lockingSectionId === null &&
+        (activeSection.subZones ?? []).map((subZone) => {
+          const [x1, y1, x2, y2] = subZone.bbox;
+          const w = Math.max(10, x2 - x1);
+          const h = Math.max(10, y2 - y1);
+          const isSubActive = activeSubZoneId === subZone.id;
+          const isSubHovered =
+            !isDragging &&
+            (hoveredSubZoneId === subZone.id || focusedSubId === subZone.id);
+          const isAnySubActive = activeSubZoneId !== null;
+
+          return (
+            <g
+              key={subZone.id}
+              data-subzone-group={subZone.id}
+            >
+              {/* Soft hover tint or active spotlight border */}
+              {(isSubHovered || isSubActive || !isAnySubActive) && (
+                <>
+                  {/* Hover fill tint */}
+                  <rect
+                    x={x1}
+                    y={y1}
+                    width={w}
+                    height={h}
+                    rx={12}
+                    fill={
+                      isSubHovered && !isSubActive
+                        ? `${activeSection.accent}18`
+                        : 'transparent'
+                    }
+                    stroke={activeSection.accent}
+                    strokeWidth={
+                      isSubActive ? 2.8 : isSubHovered ? 2.8 : 1.35
+                    }
+                    strokeDasharray={
+                      isSubActive ? undefined : isSubHovered ? '14 8' : '8 7'
+                    }
+                    vectorEffect="non-scaling-stroke"
+                    pointerEvents="none"
+                    className={
+                      isSubHovered && !isSubActive ? 'edge-glow-dash' : undefined
+                    }
+                    style={{
+                      opacity: isSubActive
+                        ? 0.96
+                        : isSubHovered
+                          ? 0.94
+                          : isAnySubActive
+                            ? 0.18
+                            : 0.36,
+                      transition: 'opacity 160ms ease-out',
+                    }}
+                  />
+
+                  {/* Crisp inner highlight line on active or hovered sub-part */}
+                  {(isSubHovered || isSubActive) && (
+                    <rect
+                      x={x1}
+                      y={y1}
+                      width={w}
+                      height={h}
+                      rx={12}
+                      fill="none"
+                      stroke="#fff1ee"
+                      strokeWidth={1}
+                      vectorEffect="non-scaling-stroke"
+                      pointerEvents="none"
+                      style={{
+                        opacity: isSubActive ? 0.55 : 0.42,
+                      }}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* Compact Top-Left Corner Code Badge (e.g. 2.1, 2.4) in Level-1 Section View or when hovering another sub-part */}
+              {!isSubActive && (!isAnySubActive || isSubHovered) && (
+                <g
+                  transform={`translate(${x1 + 8}, ${y1 + 8})`}
+                  pointerEvents="none"
+                  style={{
+                    opacity: isSubHovered ? 1 : 0.82,
+                    transition: 'opacity 150ms ease-out',
+                  }}
+                >
+                  <rect
+                    x={0}
+                    y={0}
+                    width={isSubHovered ? Math.min(w - 16, Math.max(40, subZone.code.length * 9 + 18)) : 38}
+                    height={21}
+                    rx={6}
+                    fill={
+                      isSubHovered
+                        ? activeSection.accent
+                        : 'rgba(26, 4, 4, 0.88)'
+                    }
+                    stroke={
+                      isSubHovered
+                        ? '#fff1ee'
+                        : activeSection.accent
+                    }
+                    strokeWidth={1.1}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <text
+                    x={19}
+                    y={14.5}
+                    textAnchor="middle"
+                    fill={
+                      isSubHovered
+                        ? activeSection.badgeText
+                        : '#fff1ee'
+                    }
+                    fontSize="11"
+                    fontWeight="700"
+                    fontFamily="JetBrains Mono, monospace"
+                  >
+                    {subZone.code}
+                  </text>
+                </g>
+              )}
+
+              {/* Interactive Sub-Part Hit Target */}
+              <rect
+                data-testid={`subzone-hotspot-${subZone.id}`}
+                x={x1}
+                y={y1}
+                width={w}
+                height={h}
+                rx={12}
+                fill="transparent"
+                stroke="transparent"
+                strokeWidth={0}
+                pointerEvents="auto"
+                tabIndex={0}
+                role="button"
+                aria-label={`${
+                  isSubActive ? 'Zoom out from' : 'Zoom into'
+                } sub-part ${subZone.code}: ${subZone.label} (${subZone.detail})`}
+                aria-pressed={isSubActive}
+                className={
+                  isSubActive ? 'cursor-zoom-out' : 'cursor-zoom-in'
+                }
+                onMouseEnter={(e: MouseEvent<SVGRectElement>) =>
+                  onHoverSubZone(subZone, { x: e.clientX, y: e.clientY })
+                }
+                onMouseMove={(e: MouseEvent<SVGRectElement>) =>
+                  onHoverSubZone(subZone, { x: e.clientX, y: e.clientY })
+                }
+                onMouseLeave={() => onHoverSubZone(null)}
+                onFocus={() => {
+                  setFocusedSubId(subZone.id);
+                  onHoverSubZone(subZone);
+                }}
+                onBlur={() => {
+                  setFocusedSubId((prev) =>
+                    prev === subZone.id ? null : prev,
+                  );
+                  onHoverSubZone(null);
+                }}
+                onClick={(e: MouseEvent<SVGRectElement>) => {
+                  e.stopPropagation();
+                  onSelectSubZone(isSubActive ? null : subZone.id);
+                }}
+                onKeyDown={(e) => handleSubKeyDown(e, subZone.id)}
+              />
+            </g>
+          );
+        })}
     </svg>
   );
 }
