@@ -81,7 +81,7 @@ export const SECTIONS: readonly Section[] = [
     owner: 'Jenny',
     fullName: 'Jenny Lou D. Abangan',
     crop: 'appendicular.jpg',
-    cropSrc: './assets/appendicular.jpg?v=14',
+    cropSrc: './assets/appendicular.jpg?v=15',
     accent: '#0d9488',
     badgeText: '#160303',
     bbox: [0, 0, 1040, 802],
