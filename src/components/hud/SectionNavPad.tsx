@@ -122,7 +122,7 @@ export function SectionNavPad({
     <AnimatePresence>
       {show && section && (
         <>
-          {/* Bottom-center quick sub-zone jump bar */}
+          {/* Bottom-center quick sub-zone jump bar (sits cleanly above mobile bottom sheet on <1024px) */}
           {section.subZones.length > 0 && (
             <motion.div
               key="section-subzone-bar"
@@ -132,14 +132,13 @@ export function SectionNavPad({
               exit={{ opacity: 0, y: 10 }}
               transition={transition}
               style={{
-                left: sidebarCollapsed ? '60px' : '256px',
-                right: '112px',
-              }}
-              className="pointer-events-none fixed bottom-2.5 z-30 flex justify-center px-2"
+                '--desktop-left': sidebarCollapsed ? '60px' : '256px',
+              } as React.CSSProperties}
+              className="pointer-events-none fixed inset-x-2 bottom-[88px] z-30 flex justify-center px-1 lg:right-[112px] lg:bottom-2.5 lg:left-[var(--desktop-left)] lg:px-2"
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="hud-glass pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-full px-1.5 py-1 shadow-lg"
+                className="hud-glass touch-scroll-x pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-full px-1.5 py-1 shadow-lg"
                 role="toolbar"
                 aria-label={`${section.name} quick focus zones`}
               >
@@ -199,7 +198,7 @@ export function SectionNavPad({
             </motion.div>
           )}
 
-          {/* Bottom-right compact 4-way directional pan D-pad (↑ ↓ ← →) */}
+          {/* Bottom-right compact 4-way directional pan D-pad (sits above sub-zone bar on mobile, bottom-right on desktop) */}
           <motion.div
             key="section-pan-dpad"
             data-testid="section-pan-dpad"
@@ -208,7 +207,7 @@ export function SectionNavPad({
             exit={{ opacity: 0, scale: 0.92, y: 10 }}
             transition={transition}
             onClick={(e) => e.stopPropagation()}
-            className="hud-glass pointer-events-auto fixed right-3 bottom-2.5 z-30 grid grid-cols-3 gap-0.5 rounded-2xl p-1 shadow-xl"
+            className="hud-glass pointer-events-auto fixed right-2.5 bottom-[132px] z-30 grid grid-cols-3 gap-0.5 rounded-2xl p-1 shadow-xl lg:right-3 lg:bottom-2.5"
             role="group"
             aria-label="Pan zoomed section with arrows"
           >
