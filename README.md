@@ -48,15 +48,19 @@ Pre-configured for zero-config static deployment to **Vercel** (`vercel.json`) a
 - **`+` / `−` / Scroll**: Smooth cursor-anchored zoom
 - **`Drag` / Pinch**: Free pan & touch zoom when zoomed in
 - **`V`**: Toggle smoothly between **Poster Mode** and **Realistic 3D Model Mode** (8 interactive 3D vertebrates)
+- **`C`**: Open **Evolutionary Homology Comparison** (Fish → Amphibian → Reptile/Bird → Mammal) + interactive **Quiz Mode**
+- **`Q`**: Open **Mobile Classroom Companion QR Code** from the top bar
 - **`F`**: Toggle active-section color emphasis (decolorize non-active regions)
 - **`H`**: Toggle clean presentation mode (hide HUD)
 - **`?`**: Open navigation shortcuts overlay
 
-## 3D Model Attribution
+## 3D Model & Vector Asset Attribution
 
-All 3D models in `public/models/` are sourced from open-source GitHub repositories:
+All 3D models and scientific vector illustrations are sourced from open-source GitHub repositories:
 
 - **Human (`muscles.glb`)**: 177 named skeletal muscles from [organui/muscles-3d](https://github.com/organui/muscles-3d) (MIT code), adapted from **BodyParts3D** © The Database Center for Life Science (DBCLS), licensed under **CC BY-SA 2.1 Japan** (see `public/models/ATTRIBUTION.md`).
 - **Shark, Teleost Fish, Frog, Crocodile, Dog & Horse (`shark.glb`, `teleost.glb`, `frog.glb`, `crocodile.glb`, `dog.glb`, `horse.glb`)**: Rigged & animated vertebrate models indexed via [lucas-martinic/polyfork-catalog](https://github.com/lucas-martinic/polyfork-catalog) (**Polyfork 3D**, CC BY 4.0).
 - **Bird (`parrot.glb`)**: Animated avian flight model from [mrdoob/three.js](https://github.com/mrdoob/three.js) examples (**MIT**).
+- **Anatomical Muscle Emblem & Vertebrate Clade Plates (`public/favicon.svg`, `public/assets/clades/*.svg`)**: Sourced from [duerrsimon/bioicons](https://github.com/duerrsimon/bioicons) (**Servier Medical Art** CC BY 3.0, **DBCLS** CC BY 4.0, and **EwaOz** CC0).
+- **ECC-High QR Matrices (`src/data/qrMatrices.ts`, `public/assets/qr-project-msi.svg`)**: Generated with [nayuki/QR-Code-generator](https://github.com/nayuki/QR-Code-generator) (**MIT**).
 
