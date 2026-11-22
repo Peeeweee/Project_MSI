@@ -121,10 +121,11 @@ export function SectionNavPad({
     <AnimatePresence>
       {show && section && (
         <>
-          {/* Top-center Level-2 Sub-Part Navigator Banner (appears when zoomed into any sub-part, or shows subtle prompt at Level 1) */}
-          <motion.div
-            key="subzone-top-navigator"
-            data-testid="subzone-top-navigator"
+          {/* Top-center Level-2 Sub-Part Navigator Banner (only shown for sections with sub-parts, i.e. Jenny's Appendicular section) */}
+          {section.subZones.length > 0 && (
+            <motion.div
+              key="subzone-top-navigator"
+              data-testid="subzone-top-navigator"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -304,7 +305,8 @@ export function SectionNavPad({
                 </button>
               </div>
             )}
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* Bottom-center quick sub-zone jump bar (sits cleanly above mobile bottom sheet on <1024px) */}
           {section.subZones.length > 0 && (
