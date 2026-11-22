@@ -5,6 +5,7 @@ import {
   SECTIONS,
   type Section,
   type SectionId,
+  type SectionSubZone,
 } from './data/sections';
 import { useCamera } from './hooks/useCamera';
 import { useDepthParallax } from './hooks/useDepthParallax';
@@ -70,6 +71,7 @@ export default function App() {
   });
 
   const [hoveredSection, setHoveredSection] = useState<Section | null>(null);
+  const [hoveredSubZone, setHoveredSubZone] = useState<SectionSubZone | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
   const [idleHintSectionId, setIdleHintSectionId] = useState<SectionId | null>(null);
   const [ripples, setRipples] = useState<ClickRippleItem[]>([]);
@@ -103,11 +105,16 @@ export default function App() {
   });
   const {
     activeSection,
+    activeSubZoneId,
+    activeSubZone,
     lockingSectionId,
     sidebarVisible,
     isCustomView,
     goOverview: rawGoOverview,
     goSection: rawGoSection,
+    goSubZone: rawGoSubZone,
+    nextSubZone: rawNextSubZone,
+    prevSubZone: rawPrevSubZone,
     next: rawNext,
     prev: rawPrev,
     resetSectionView,
@@ -154,6 +161,24 @@ export default function App() {
     playTransitionWhoosh(effects.sound, activeSectionId ? 'pan' : 'in');
     rawPrev();
   }, [activeSectionId, effects.sound, rawPrev]);
+
+  const goSubZone = useCallback(
+    (subZoneId: string | null) => {
+      playTransitionWhoosh(effects.sound, subZoneId ? 'in' : 'out');
+      rawGoSubZone(subZoneId);
+    },
+    [effects.sound, rawGoSubZone],
+  );
+
+  const nextSubZone = useCallback(() => {
+    playTransitionWhoosh(effects.sound, 'pan');
+    rawNextSubZone();
+  }, [effects.sound, rawNextSubZone]);
+
+  const prevSubZone = useCallback(() => {
+    playTransitionWhoosh(effects.sound, 'pan');
+    rawPrevSubZone();
+  }, [effects.sound, rawPrevSubZone]);
 
   const cancelIdleHint = useCallback(() => {
     idleHintDoneRef.current = true;
@@ -254,6 +279,7 @@ export default function App() {
   // Clear hover & lightbox when section changes
   useEffect(() => {
     setHoveredSection(null);
+    setHoveredSubZone(null);
     setHoverPos(null);
     setCropLightboxOpen(false);
   }, [activeSectionId]);
@@ -294,6 +320,26 @@ export default function App() {
       }
     },
     [activeSectionId, cancelIdleHint, effects.sound, handleCropLoaded, lockingSectionId],
+  );
+
+  const handleHoverSubZone = useCallback(
+    (subZone: SectionSubZone | null, pointer?: { x: number; y: number }) => {
+      if (!subZone || activeSectionId === null || lockingSectionId !== null) {
+        setHoveredSubZone(null);
+        setHoverPos(null);
+        return;
+      }
+      setHoveredSubZone((prevHovered) => {
+        if (prevHovered?.id !== subZone.id) {
+          playHoverTick(effects.sound);
+        }
+        return subZone;
+      });
+      if (pointer) {
+        setHoverPos(pointer);
+      }
+    },
+    [activeSectionId, effects.sound, lockingSectionId],
   );
 
   const handleAnchorHover = useCallback(
@@ -427,7 +473,17 @@ export default function App() {
           setEffectsOpen(false);
           return;
         }
+        if (activeSubZoneId !== null) {
+          goSubZone(null);
+          return;
+        }
         goOverview();
+        return;
+      }
+
+      if (e.key === 'Backspace' && activeSubZoneId !== null) {
+        e.preventDefault();
+        goSubZone(null);
         return;
       }
 
@@ -541,6 +597,22 @@ export default function App() {
           next();
           break;
         }
+        case ',':
+        case '<': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            prevSubZone();
+          }
+          break;
+        }
+        case '.':
+        case '>': {
+          if (viewMode === 'poster' && activeSectionId !== null) {
+            e.preventDefault();
+            nextSubZone();
+          }
+          break;
+        }
         case '+':
         case '=': {
           e.preventDefault();
@@ -606,15 +678,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeSectionId,
+    activeSubZoneId,
     compareOpen,
     cropLightboxOpen,
     effectsOpen,
     goOverview,
+    goSubZone,
     handleChangeViewMode,
     introActive,
     next,
+    nextSubZone,
     panBy,
     prev,
+    prevSubZone,
     qrOpen,
     shortcutsOpen,
     triggerRippleAndGo,
@@ -735,6 +811,7 @@ export default function App() {
                 hudVisible={hudVisible}
                 sidebarCollapsed={sidebarCollapsed}
                 hoveredSection={hoveredSection}
+                hoveredSubZone={hoveredSubZone}
                 isolateActiveSection={isolateActive}
                 idleHintSectionId={idleHintSectionId}
                 loadedCrops={loadedCrops}
@@ -745,8 +822,10 @@ export default function App() {
                 introActive={introActive}
                 skeletonEnabled={effects.skeleton}
                 onHoverSection={handleHoverSection}
+                onHoverSubZone={handleHoverSubZone}
                 onFocusSectionKeyboard={handleAnchorHover}
                 onSelectSection={triggerRippleAndGo}
+                onSelectSubZone={goSubZone}
               />
 
               {/* Phase 3 orchestrated minimized 56px rail / expandable 248px left sidebar */}
@@ -777,11 +856,15 @@ export default function App() {
               {/* Compact bottom sub-zone switcher & 4-way arrow pan D-pad */}
               <SectionNavPad
                 section={activeSection}
+                activeSubZoneId={activeSubZoneId}
+                activeSubZone={activeSubZone}
                 visible={hudVisible && sidebarVisible}
                 sidebarCollapsed={sidebarCollapsed}
                 isCustomView={isCustomView}
                 onPan={panBy}
-                onFocusBbox={focusBbox}
+                onSelectSubZone={goSubZone}
+                onPrevSubZone={prevSubZone}
+                onNextSubZone={nextSubZone}
                 onResetView={resetSectionView}
               />
             </motion.div>
@@ -828,9 +911,25 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Overview spring-lagged 3D-tilting cursor tooltip (Poster mode only) */}
+        {/* Overview & Level-2 Sub-Part spring-lagged 3D-tilting cursor tooltip (hidden on already-active zoomed sub-part so diagrams stay 100% unobstructed) */}
         <HoverTooltip
-          section={isPosterMode ? hoveredSection : null}
+          section={
+            isPosterMode
+              ? hoveredSubZone
+                ? hoveredSubZone.id === activeSubZoneId
+                  ? null
+                  : activeSection
+                : hoveredSection
+              : null
+          }
+          subZone={
+            isPosterMode &&
+            hoveredSubZone &&
+            hoveredSubZone.id !== activeSubZoneId
+              ? hoveredSubZone
+              : null
+          }
+          isSubZoneActive={false}
           position={hoverPos}
           viewport={viewport}
           hudVisible={hudVisible && !introActive && isPosterMode}
