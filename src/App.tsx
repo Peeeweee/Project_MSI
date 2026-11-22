@@ -35,6 +35,9 @@ import { ShortcutsOverlay } from './components/hud/ShortcutsOverlay';
 import { CropLightbox } from './components/hud/CropLightbox';
 import { EffectsPopover } from './components/hud/EffectsPopover';
 import { IntroOverlay } from './components/hud/IntroOverlay';
+import { EvolutionCompareModal } from './components/hud/EvolutionCompareModal';
+import { QrShareModal } from './components/hud/QrShareModal';
+import type { VertebrateId } from './data/vertebrates';
 
 const IDLE_HINT_DELAY_MS = 4000;
 const IDLE_HINT_STEP_MS = 580;
@@ -53,7 +56,11 @@ export default function App() {
   const [isolateActive, setIsolateActive] = useState(true);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [effectsOpen, setEffectsOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [cropLightboxOpen, setCropLightboxOpen] = useState(false);
+  const [requestedVertebrateId, setRequestedVertebrateId] =
+    useState<VertebrateId | null>(null);
 
   // Play 2-second micro-intro on initial overview load (skipped if deep-linked to #section or disabled)
   const [introActive, setIntroActive] = useState<boolean>(() => {
@@ -396,6 +403,14 @@ export default function App() {
           setCropLightboxOpen(false);
           return;
         }
+        if (compareOpen) {
+          setCompareOpen(false);
+          return;
+        }
+        if (qrOpen) {
+          setQrOpen(false);
+          return;
+        }
         if (shortcutsOpen) {
           setShortcutsOpen(false);
           return;
@@ -408,9 +423,15 @@ export default function App() {
         return;
       }
 
-      if (cropLightboxOpen || shortcutsOpen) {
+      if (cropLightboxOpen || shortcutsOpen || compareOpen || qrOpen) {
         if (e.key === '?' && shortcutsOpen) {
           setShortcutsOpen(false);
+        }
+        if ((e.key === 'c' || e.key === 'C') && compareOpen) {
+          setCompareOpen(false);
+        }
+        if ((e.key === 'q' || e.key === 'Q') && qrOpen) {
+          setQrOpen(false);
         }
         return;
       }
@@ -544,9 +565,29 @@ export default function App() {
           setHudVisible((v) => !v);
           break;
         }
+        case 'c':
+        case 'C': {
+          e.preventDefault();
+          setEffectsOpen(false);
+          setShortcutsOpen(false);
+          setQrOpen(false);
+          setCompareOpen((v) => !v);
+          break;
+        }
+        case 'q':
+        case 'Q': {
+          e.preventDefault();
+          setEffectsOpen(false);
+          setShortcutsOpen(false);
+          setCompareOpen(false);
+          setQrOpen((v) => !v);
+          break;
+        }
         case '?': {
           e.preventDefault();
           setEffectsOpen(false);
+          setCompareOpen(false);
+          setQrOpen(false);
           setShortcutsOpen((v) => !v);
           break;
         }
@@ -557,6 +598,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     activeSectionId,
+    compareOpen,
     cropLightboxOpen,
     effectsOpen,
     goOverview,
@@ -565,6 +607,7 @@ export default function App() {
     next,
     panBy,
     prev,
+    qrOpen,
     shortcutsOpen,
     triggerRippleAndGo,
     viewMode,
@@ -579,6 +622,8 @@ export default function App() {
     lockingSectionId === null &&
     !introActive &&
     !effectsOpen &&
+    !compareOpen &&
+    !qrOpen &&
     !shortcutsOpen &&
     !cropLightboxOpen;
 
@@ -621,6 +666,8 @@ export default function App() {
           scale={camera.camera.scale}
           hudVisible={hudVisible}
           effectsOpen={effectsOpen}
+          compareOpen={compareOpen}
+          qrOpen={qrOpen}
           effectsPreset={activePreset}
           onChangeViewMode={handleChangeViewMode}
           onPreload3D={preloadThreeDAssets}
@@ -635,13 +682,29 @@ export default function App() {
               goSection(id);
             }
           }}
+          onToggleCompare={() => {
+            setEffectsOpen(false);
+            setShortcutsOpen(false);
+            setQrOpen(false);
+            setCompareOpen((v) => !v);
+          }}
+          onToggleQr={() => {
+            setEffectsOpen(false);
+            setShortcutsOpen(false);
+            setCompareOpen(false);
+            setQrOpen((v) => !v);
+          }}
           onToggleEffects={() => {
             setShortcutsOpen(false);
+            setCompareOpen(false);
+            setQrOpen(false);
             setEffectsOpen((v) => !v);
           }}
           onToggleHud={() => setHudVisible((v) => !v)}
           onOpenShortcuts={() => {
             setEffectsOpen(false);
+            setCompareOpen(false);
+            setQrOpen(false);
             setShortcutsOpen(true);
           }}
         />
@@ -737,6 +800,7 @@ export default function App() {
                   stageViewport={stageViewport}
                   activeSection={activeSection}
                   cardTiltEnabled={effects.cardTilt}
+                  requestedVertebrateId={requestedVertebrateId}
                   onSelectSection={(id) => {
                     if (id) {
                       goSection(id);
@@ -799,6 +863,43 @@ export default function App() {
           section={activeSection}
           open={cropLightboxOpen}
           onClose={() => setCropLightboxOpen(false)}
+        />
+
+        {/* #4: Evolutionary Homology Comparison modal (Fish -> Amphibian -> Reptile/Bird -> Mammal + Quiz Mode) */}
+        <EvolutionCompareModal
+          open={compareOpen}
+          activeSectionId={activeSectionId}
+          onClose={() => setCompareOpen(false)}
+          onJumpToPosterBbox={(secId, bbox) => {
+            if (viewMode !== 'poster') {
+              handleChangeViewMode('poster');
+            }
+            if (activeSectionId !== secId) {
+              goSection(secId);
+              window.setTimeout(() => {
+                focusBbox(bbox);
+              }, 950);
+            } else {
+              focusBbox(bbox);
+            }
+          }}
+          onInspectIn3D={(secId, vertId) => {
+            setRequestedVertebrateId(vertId);
+            if (activeSectionId !== secId) {
+              goSection(secId);
+            }
+            if (viewMode !== '3d') {
+              handleChangeViewMode('3d');
+            }
+          }}
+        />
+
+        {/* #5: Mobile Classroom Companion QR Code modal (triggered strictly from TopBar) */}
+        <QrShareModal
+          open={qrOpen}
+          activeSectionId={activeSectionId}
+          cardTiltEnabled={effects.cardTilt}
+          onClose={() => setQrOpen(false)}
         />
       </div>
     </LayoutGroup>
