@@ -586,7 +586,7 @@ export function Comparison3DCardCanvas({
                   ? `0 0 0 2px ${section.accent}55, 0 0 8px ${section.accent}`
                   : '0 1px 4px rgba(0,0,0,0.65)',
               }}
-              className={`hud-btn absolute flex items-center justify-center rounded-full font-mono-num transition-all ${
+              className={` absolute flex items-center justify-center rounded-full font-mono-num transition-colors ${
                 isSelected
                   ? 'h-3.5 w-3.5 border-[1.5px] text-[8px] font-extrabold'
                   : 'h-2 w-2 border opacity-75 hover:h-3 hover:w-3 hover:opacity-100'
