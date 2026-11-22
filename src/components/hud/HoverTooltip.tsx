@@ -8,13 +8,15 @@ import {
   useTransform,
   useVelocity,
 } from 'framer-motion';
-import { ArrowUpRight } from 'lucide-react';
-import type { Section } from '../../data/sections';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import type { Section, SectionSubZone } from '../../data/sections';
 import { clamp, type ViewportSize } from '../../lib/cameraMath';
 import { HOVER_SPRING, pickTransition } from '../../lib/springs';
 
 interface HoverTooltipProps {
   section: Section | null;
+  subZone?: SectionSubZone | null;
+  isSubZoneActive?: boolean;
   position: { x: number; y: number } | null;
   viewport: ViewportSize;
   hudVisible: boolean;
@@ -27,9 +29,12 @@ const TILT_SPRING = { stiffness: 210, damping: 22, mass: 0.55 };
 /**
  * Compact, modern floating capsule tooltip attached to the cursor with
  * spring-lag follow, subtle accent aura, and velocity-coupled 3D micro-tilt.
+ * Supports both Level-1 main sections and Level-2 sub-parts.
  */
 export function HoverTooltip({
   section,
+  subZone = null,
+  isSubZoneActive = false,
   position,
   viewport,
   hudVisible,
@@ -38,10 +43,11 @@ export function HoverTooltip({
   const prefersReducedMotion = useReducedMotion();
   const appearTransition = pickTransition(HOVER_SPRING, prefersReducedMotion);
 
-  const visible = hudVisible && section !== null && position !== null;
+  const visible =
+    hudVisible && (section !== null || subZone !== null) && position !== null;
 
-  const pillW = 210;
-  const pillH = 36;
+  const pillW = subZone ? 270 : 210;
+  const pillH = 38;
   const rawX = (position?.x ?? 0) + 16;
   const rawY = (position?.y ?? 0) - pillH - 12;
 
@@ -103,6 +109,9 @@ export function HoverTooltip({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
+  const accent = section?.accent ?? '#f59e0b';
+  const badgeText = section?.badgeText ?? '#2a1200';
+
   return (
     <div
       aria-hidden="true"
@@ -125,50 +134,66 @@ export function HoverTooltip({
               rotateY,
               transformStyle: 'preserve-3d',
               willChange: 'transform, opacity',
-              borderColor: `${section.accent}66`,
-              boxShadow: `0 10px 26px -6px rgba(10, 1, 1, 0.72), 0 0 18px -4px ${section.accent}55, inset 0 1px 0 rgba(255, 241, 238, 0.14)`,
+              borderColor: `${accent}66`,
+              boxShadow: `0 10px 26px -6px rgba(10, 1, 1, 0.72), 0 0 18px -4px ${accent}55, inset 0 1px 0 rgba(255, 241, 238, 0.14)`,
             }}
-            className="fixed left-0 top-0 inline-flex items-center gap-2 rounded-full border bg-[#190303]/90 py-1 pr-1.5 pl-1.5 backdrop-blur-md"
+            className="fixed left-0 top-0 inline-flex items-center gap-2 rounded-full border bg-[#190303]/92 py-1 pr-2 pl-1.5 backdrop-blur-md"
           >
-            {/* Glowing round index badge */}
+            {/* Glowing index or sub-part code badge */}
             <span
-              className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10.5px] font-bold"
+              className="font-mono-num flex h-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold"
               style={{
-                backgroundColor: section.accent,
-                color: section.badgeText,
-                boxShadow: `0 0 10px ${section.accent}80`,
+                minWidth: '20px',
+                backgroundColor: accent,
+                color: badgeText,
+                boxShadow: `0 0 10px ${accent}80`,
               }}
             >
-              {section.n}
+              {subZone ? subZone.code : section.n}
             </span>
 
-            {/* Crisp inline title + presenter chip */}
-            <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-              <span className="font-display text-[13px] font-semibold tracking-tight text-[#fff1ee]">
-                {section.name}
-              </span>
-              <span
-                aria-hidden="true"
-                className="text-[10px] text-[#ffd9d0]/40"
-              >
-                ·
-              </span>
-              <span className="text-[11px] font-medium text-[#ffd9d0]/80">
-                {section.owner}
-              </span>
-            </div>
+            {/* Crisp inline title + presenter/detail chip */}
+            {subZone ? (
+              <div className="flex flex-col leading-tight whitespace-nowrap">
+                <span className="font-display text-[12px] font-semibold tracking-tight text-[#fff1ee]">
+                  {subZone.label}
+                </span>
+                <span className="max-w-[215px] truncate text-[9.5px] text-[#ffd9d0]/75">
+                  {subZone.detail}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                <span className="font-display text-[13px] font-semibold tracking-tight text-[#fff1ee]">
+                  {section.name}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="text-[10px] text-[#ffd9d0]/40"
+                >
+                  ·
+                </span>
+                <span className="text-[11px] font-medium text-[#ffd9d0]/80">
+                  {section.owner}
+                </span>
+              </div>
+            )}
 
             {/* Micro action pill */}
             <span
               className="ml-0.5 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide uppercase"
               style={{
-                backgroundColor: `${section.accent}28`,
+                backgroundColor: `${accent}28`,
                 color: '#fff1ee',
-                border: `1px solid ${section.accent}55`,
+                border: `1px solid ${accent}55`,
               }}
             >
-              View
-              <ArrowUpRight className="h-2.5 w-2.5" />
+              {subZone ? (isSubZoneActive ? 'Zoom Out' : 'Zoom In') : 'View'}
+              {subZone && isSubZoneActive ? (
+                <ArrowDownLeft className="h-2.5 w-2.5" />
+              ) : (
+                <ArrowUpRight className="h-2.5 w-2.5" />
+              )}
             </span>
           </motion.div>
         )}
