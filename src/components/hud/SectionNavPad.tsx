@@ -1,22 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Minimize2,
   RotateCcw,
 } from 'lucide-react';
-import type { Section } from '../../data/sections';
+import type { Section, SectionSubZone } from '../../data/sections';
 import { HUD_SPRING, pickTransition } from '../../lib/springs';
 
 interface SectionNavPadProps {
   section: Section | null;
+  activeSubZoneId: string | null;
+  activeSubZone: SectionSubZone | null;
   visible: boolean;
   sidebarCollapsed: boolean;
   isCustomView: boolean;
   onPan: (dx: number, dy: number) => void;
-  onFocusBbox: (bbox: readonly [number, number, number, number]) => void;
+  onSelectSubZone: (subZoneId: string | null) => void;
+  onPrevSubZone: () => void;
+  onNextSubZone: () => void;
   onResetView: () => void;
 }
 
@@ -25,25 +32,31 @@ const HOLD_PAN_STEP = 155;
 const HOLD_INTERVAL_MS = 140;
 
 /**
- * Compact classroom-TV navigation controls for Poster Mode:
- * - Bottom-center slim sub-zone jump pills (e.g., Extrinsic Eye / Mandibular / Hyoid & Branchial)
+ * Classroom-TV & Mobile 2-Level Sub-Part Navigation Controls for Poster Mode:
+ * - Top-center floating Level-2 Sub-Part Breadcrumb & Step-Through Bar when zoomed into a sub-part
+ *   ([← Full Section] | [‹] 2.4 · Forelimb (4-Source Tetrapods) [›])
+ * - Bottom-center numbered sub-part dock (Full + 1.1..1.6 / 2.1..2.7 / 3.1..3.5 / 4.1..4.8)
  * - Bottom-right 4-way arrow D-pad (tap or press-and-hold) + center reset button
  */
 export function SectionNavPad({
   section,
+  activeSubZoneId,
+  activeSubZone,
   visible,
   sidebarCollapsed,
   isCustomView,
   onPan,
-  onFocusBbox,
+  onSelectSubZone,
+  onPrevSubZone,
+  onNextSubZone,
   onResetView,
 }: SectionNavPadProps) {
   const prefersReducedMotion = useReducedMotion();
   const transition = pickTransition(HUD_SPRING, prefersReducedMotion);
 
-  const [activeSubZoneId, setActiveSubZoneId] = useState<string | null>(null);
   const holdTimerRef = useRef<number | null>(null);
   const pointerTriggeredRef = useRef(false);
+  const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const stopHold = useCallback(() => {
     if (holdTimerRef.current !== null) {
@@ -52,50 +65,29 @@ export function SectionNavPad({
     }
   }, []);
 
-  // Reset active sub-zone highlight when changing sections or returning to full section fit
   useEffect(() => {
-    setActiveSubZoneId(null);
     stopHold();
   }, [section?.id, stopHold]);
 
-  useEffect(() => {
-    if (!isCustomView) {
-      setActiveSubZoneId(null);
-    }
-  }, [isCustomView]);
+  useEffect(() => stopHold, [stopHold]);
 
-  // Clear sub-zone pill highlight as soon as user pans manually with keyboard arrows / WASD
+  // Keep active sub-part pill centered inside the horizontal bottom dock
   useEffect(() => {
     if (!activeSubZoneId) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (
-        e.key === 'ArrowUp' ||
-        e.key === 'ArrowDown' ||
-        e.key === 'ArrowLeft' ||
-        e.key === 'ArrowRight' ||
-        e.key === 'w' ||
-        e.key === 'W' ||
-        e.key === 'a' ||
-        e.key === 'A' ||
-        e.key === 's' ||
-        e.key === 'S' ||
-        e.key === 'd' ||
-        e.key === 'D'
-      ) {
-        setActiveSubZoneId(null);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const btn = pillRefs.current[activeSubZoneId];
+    if (btn && typeof btn.scrollIntoView === 'function') {
+      btn.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
   }, [activeSubZoneId]);
-
-  useEffect(() => stopHold, [stopHold]);
 
   const startPanHold = useCallback(
     (dirX: number, dirY: number) => {
       stopHold();
       pointerTriggeredRef.current = true;
-      setActiveSubZoneId(null);
       onPan(dirX * TAP_PAN_STEP, dirY * TAP_PAN_STEP);
       holdTimerRef.current = window.setInterval(() => {
         onPan(dirX * HOLD_PAN_STEP, dirY * HOLD_PAN_STEP);
@@ -110,18 +102,143 @@ export function SectionNavPad({
         pointerTriggeredRef.current = false;
         return;
       }
-      setActiveSubZoneId(null);
       onPan(dirX * TAP_PAN_STEP, dirY * TAP_PAN_STEP);
     },
     [onPan],
   );
 
   const show = Boolean(visible && section);
+  const activeSubIndex =
+    section && activeSubZoneId
+      ? section.subZones.findIndex((z) => z.id === activeSubZoneId)
+      : -1;
 
   return (
     <AnimatePresence>
       {show && section && (
         <>
+          {/* Top-center Level-2 Sub-Part Navigator Banner (appears when zoomed into any sub-part, or shows subtle prompt at Level 1) */}
+          <motion.div
+            key="subzone-top-navigator"
+            data-testid="subzone-top-navigator"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={transition}
+            style={
+              {
+                '--desktop-left': sidebarCollapsed ? '60px' : '256px',
+              } as React.CSSProperties
+            }
+            className="pointer-events-none fixed inset-x-2 top-[52px] z-30 flex justify-center px-1 lg:right-4 lg:left-[var(--desktop-left)]"
+          >
+            {activeSubZone ? (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="hud-glass pointer-events-auto flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 shadow-xl"
+                style={{
+                  borderColor: `${section.accent}66`,
+                  boxShadow: `0 12px 28px -8px rgba(10, 1, 1, 0.78), 0 0 18px -6px ${section.accent}44`,
+                }}
+              >
+                {/* 1-click Back to Full Section button */}
+                <button
+                  type="button"
+                  data-testid="subzone-back-to-section"
+                  onClick={() => onSelectSubZone(null)}
+                  className="hud-btn flex shrink-0 items-center gap-1 rounded-full bg-[#fff1ee] px-2.5 py-1 text-[11px] font-bold text-[#240505] shadow-sm hover:bg-[#ffd9d0]"
+                  title={`Zoom back out to full ${section.name} section (Esc)`}
+                >
+                  <Minimize2 className="h-3 w-3" />
+                  <span>Full {section.name}</span>
+                </button>
+
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px shrink-0 bg-[#ffd9d0]/20"
+                />
+
+                {/* Prev Sub-Part */}
+                <button
+                  type="button"
+                  data-testid="subzone-prev-btn"
+                  onClick={onPrevSubZone}
+                  className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
+                  aria-label="Previous sub-part"
+                  title="Previous sub-part"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+
+                {/* Active Sub-Part Badge + Title + Counter */}
+                <div className="flex min-w-0 items-center gap-1.5 px-1">
+                  <span
+                    className="font-mono-num shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                    style={{
+                      backgroundColor: section.accent,
+                      color: section.badgeText,
+                    }}
+                  >
+                    {activeSubZone.code}
+                  </span>
+                  <div className="flex min-w-0 flex-col leading-tight">
+                    <span className="truncate text-[11.5px] font-semibold text-[#fff1ee]">
+                      {activeSubZone.label}
+                    </span>
+                    <span className="hidden truncate text-[9.5px] text-[#ffd9d0]/75 sm:block">
+                      {activeSubZone.detail}
+                    </span>
+                  </div>
+                  <span className="font-mono-num hidden shrink-0 rounded bg-[#2a0707]/85 px-1.5 py-0.5 text-[9.5px] text-[#ffd9d0]/75 md:inline-block">
+                    {activeSubIndex + 1}/{section.subZones.length}
+                  </span>
+                </div>
+
+                {/* Next Sub-Part */}
+                <button
+                  type="button"
+                  data-testid="subzone-next-btn"
+                  onClick={onNextSubZone}
+                  className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
+                  aria-label="Next sub-part"
+                  title="Next sub-part"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              /* Subtle Level-1 helper pill letting users know they can click any numbered sub-part on the poster */
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="hud-glass pointer-events-auto flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] text-[#ffd9d0]/85 shadow-md"
+              >
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: section.accent }}
+                />
+                <span>
+                  Click any{' '}
+                  <strong className="font-semibold text-[#fff1ee]">
+                    {section.n}.1–{section.n}.{section.subZones.length} sub-part
+                  </strong>{' '}
+                  on the poster or below to zoom in
+                </span>
+                <button
+                  type="button"
+                  data-testid="subzone-start-tour-btn"
+                  onClick={onNextSubZone}
+                  className="hud-btn ml-0.5 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                  style={{
+                    backgroundColor: section.accent,
+                    color: section.badgeText,
+                  }}
+                >
+                  Start {section.n}.1 →
+                </button>
+              </div>
+            )}
+          </motion.div>
+
           {/* Bottom-center quick sub-zone jump bar (sits cleanly above mobile bottom sheet on <1024px) */}
           {section.subZones.length > 0 && (
             <motion.div
@@ -131,31 +248,31 @@ export function SectionNavPad({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={transition}
-              style={{
-                '--desktop-left': sidebarCollapsed ? '60px' : '256px',
-              } as React.CSSProperties}
+              style={
+                {
+                  '--desktop-left': sidebarCollapsed ? '60px' : '256px',
+                } as React.CSSProperties
+              }
               className="pointer-events-none fixed inset-x-2 bottom-[88px] z-30 flex justify-center px-1 lg:right-[112px] lg:bottom-2.5 lg:left-[var(--desktop-left)] lg:px-2"
             >
               <div
                 onClick={(e) => e.stopPropagation()}
                 className="hud-glass touch-scroll-x pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-full px-1.5 py-1 shadow-lg"
                 role="toolbar"
-                aria-label={`${section.name} quick focus zones`}
+                aria-label={`${section.name} sub-parts (${section.subZones.length} parts)`}
               >
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveSubZoneId(null);
-                    onResetView();
-                  }}
+                  data-testid="subzone-full-btn"
+                  onClick={() => onResetView()}
                   aria-pressed={activeSubZoneId === null && !isCustomView}
-                  className={`hud-btn shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  className={`hud-btn shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
                     activeSubZoneId === null && !isCustomView
                       ? 'bg-[#fff1ee] text-[#240505] shadow-sm'
                       : 'text-[#ffd9d0]/85 hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]'
                   }`}
                 >
-                  Full
+                  Full ({section.subZones.length})
                 </button>
 
                 <span
@@ -168,15 +285,18 @@ export function SectionNavPad({
                   return (
                     <button
                       key={zone.id}
+                      ref={(el) => {
+                        pillRefs.current[zone.id] = el;
+                      }}
                       type="button"
                       data-testid={`subzone-${zone.id}`}
                       onClick={(e) => {
                         e.currentTarget.blur();
-                        setActiveSubZoneId(zone.id);
-                        onFocusBbox(zone.bbox);
+                        onSelectSubZone(isActive ? null : zone.id);
                       }}
                       aria-pressed={isActive}
-                      className={`hud-btn shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
+                      title={`${zone.code} ${zone.label} — ${zone.detail}`}
+                      className={`hud-btn flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
                         isActive
                           ? 'shadow-sm'
                           : 'text-[#ffd9d0]/88 hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]'
@@ -190,7 +310,14 @@ export function SectionNavPad({
                           : undefined
                       }
                     >
-                      {zone.label}
+                      <span
+                        className={`font-mono-num text-[10px] font-bold ${
+                          isActive ? 'opacity-95' : 'opacity-70'
+                        }`}
+                      >
+                        {zone.code}
+                      </span>
+                      <span>{zone.label}</span>
                     </button>
                   );
                 })}
@@ -252,12 +379,9 @@ export function SectionNavPad({
             <button
               type="button"
               data-testid="dpad-reset"
-              onClick={() => {
-                setActiveSubZoneId(null);
-                onResetView();
-              }}
+              onClick={() => onResetView()}
               className={`hud-btn flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-                isCustomView
+                isCustomView || activeSubZoneId !== null
                   ? 'bg-[#fff1ee]/16 text-[#fff1ee] hover:bg-[#fff1ee]/24'
                   : 'text-[#ffd9d0]/55 hover:bg-[#fff1ee]/10 hover:text-[#fff1ee]'
               }`}
