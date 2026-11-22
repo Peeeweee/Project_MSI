@@ -128,7 +128,10 @@ export function TopBar({
               className="h-full w-full select-none object-cover"
             />
           </span>
-          <span className="font-display whitespace-nowrap text-[11px] font-semibold tracking-[0.04em] text-[#fff1ee] sm:text-[15px] sm:tracking-[0.14em]">
+          <span className="font-display whitespace-nowrap text-xs font-semibold tracking-[0.06em] text-[#fff1ee] sm:hidden">
+            MSI
+          </span>
+          <span className="font-display hidden whitespace-nowrap text-[13px] font-semibold tracking-[0.08em] text-[#fff1ee] sm:inline md:text-[15px] md:tracking-[0.14em]">
             MUSCULAR SYSTEM
           </span>
         </button>
@@ -137,14 +140,14 @@ export function TopBar({
         <div
           role="group"
           aria-label="View mode"
-          className="ml-1 flex shrink-0 items-center rounded-full border border-[#ffd9d0]/18 bg-[#240505]/85 p-0.5"
+          className="ml-0.5 flex shrink-0 items-center rounded-full border border-[#ffd9d0]/18 bg-[#240505]/85 p-0.5 sm:ml-1"
         >
           {(
             [
-              { id: 'poster', label: 'Poster', Icon: Map },
-              { id: '3d', label: '3D Model', Icon: Box },
+              { id: 'poster', label: 'Poster', shortLabel: 'Poster', Icon: Map },
+              { id: '3d', label: '3D Model', shortLabel: '3D', Icon: Box },
             ] as const
-          ).map(({ id, label, Icon }) => {
+          ).map(({ id, label, shortLabel, Icon }) => {
             const active = viewMode === id;
             return (
               <button
@@ -159,7 +162,7 @@ export function TopBar({
                   if (id === '3d') onPreload3D?.();
                 }}
                 onClick={() => onChangeViewMode(id)}
-                className="hud-btn relative flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-semibold"
+                className="hud-btn relative flex h-6 items-center gap-1 rounded-full px-2 text-[10.5px] font-semibold sm:text-[11px]"
                 style={{
                   color: active ? '#3b0a0a' : '#ffd9d0',
                 }}
@@ -173,6 +176,7 @@ export function TopBar({
                   />
                 )}
                 <Icon className="relative z-10 h-3 w-3 shrink-0" />
+                <span className="relative z-10 sm:hidden">{shortLabel}</span>
                 <span className="relative z-10 hidden sm:inline">{label}</span>
               </button>
             );
@@ -203,7 +207,7 @@ export function TopBar({
         <div
           role="group"
           aria-label="Quick section hotspots"
-          className="flex items-center gap-1 sm:gap-1.5"
+          className="hidden items-center gap-1 sm:flex sm:gap-1.5"
         >
           {SECTIONS.map((section) => {
             const isActive = activeSectionId === section.id;
