@@ -60,6 +60,7 @@ export interface ThreeDVisualStageProps {
   stageViewport: ViewportSize;
   activeSection: Section | null;
   cardTiltEnabled: boolean;
+  requestedVertebrateId?: VertebrateId | null;
   onSelectSection: (id: SectionId | null) => void;
   onPrev: () => void;
   onNext: () => void;
@@ -125,6 +126,7 @@ export function ThreeDVisualStage({
   stageViewport,
   activeSection,
   cardTiltEnabled,
+  requestedVertebrateId,
   onSelectSection,
   onPrev,
   onNext,
@@ -135,7 +137,15 @@ export function ThreeDVisualStage({
   const activeId = activeSection?.id ?? null;
   const isDesktop = stageViewport.width >= 1024;
 
-  const [vertebrateId, setVertebrateId] = useState<VertebrateId>('human');
+  const [vertebrateId, setVertebrateId] = useState<VertebrateId>(
+    requestedVertebrateId ?? 'human',
+  );
+
+  useEffect(() => {
+    if (requestedVertebrateId) {
+      setVertebrateId(requestedVertebrateId);
+    }
+  }, [requestedVertebrateId]);
   const [anglePreset, setAnglePreset] = useState<CameraAnglePreset>('anterior');
   const [xrayFocus, setXrayFocus] = useState(true);
   const [animalWireframe, setAnimalWireframe] = useState(false);
