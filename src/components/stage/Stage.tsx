@@ -19,6 +19,7 @@ import {
   FULL_MAP_DISPLAY_2400,
   FULL_MAP_SRC,
   SECTION_BY_ID,
+  SECTIONS,
   type Section,
   type SectionId,
 } from '../../data/sections';
@@ -317,7 +318,10 @@ export function Stage({
     const moved = Math.hypot(dx, dy);
 
     if (!drag.didDrag && moved > DRAG_CLICK_THRESHOLD_PX) {
-      if (drag.scale <= 1.02 && activeSectionId === null) return;
+      const isMobileViewport = stageViewport.width < 1024;
+      if (!isMobileViewport && drag.scale <= 1.02 && activeSectionId === null) {
+        return;
+      }
       drag.didDrag = true;
       suppressNextClickRef.current = true;
       setIsDragging(true);
@@ -611,6 +615,82 @@ export function Stage({
         isFocused={activeSectionId !== null}
         panDirection={panDirection}
       />
+
+      {/* Mobile & Tablet (<1024px) Overview Bottom Thumb Dock for instant 1-tap reading zoom & section entry */}
+      <AnimatePresence>
+        {hudVisible &&
+          !introActive &&
+          activeSectionId === null &&
+          lockingSectionId === null && (
+            <motion.div
+              key="mobile-overview-dock"
+              data-testid="mobile-overview-dock"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.22 }}
+              onClick={(e) => e.stopPropagation()}
+              className="pb-safe pointer-events-none fixed inset-x-0 bottom-0 z-30 flex flex-col items-center gap-1.5 px-2.5 pt-1 lg:hidden"
+            >
+              {/* Quick 1-tap readable zoom pill for portrait phones */}
+              <div className="hud-glass pointer-events-auto flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] shadow-lg">
+                <span className="text-[#ffd9d0]/80">Pinch or tap to explore</span>
+                <span className="h-3 w-px bg-[#ffd9d0]/20" aria-hidden="true" />
+                <button
+                  type="button"
+                  data-testid="mobile-overview-zoom-toggle"
+                  onClick={() => {
+                    if (camera.camera.scale > 1.25) {
+                      camera.goOverview();
+                    } else {
+                      zoomToScale(
+                        1.9,
+                        stageViewport.width / 2,
+                        stageViewport.height / 2,
+                      );
+                    }
+                  }}
+                  className="hud-btn rounded-full bg-[#fff1ee] px-2.5 py-0.5 text-[10.5px] font-bold text-[#240505]"
+                >
+                  {camera.camera.scale > 1.25 ? 'Fit Map 1×' : 'Zoom Read 1.9×'}
+                </button>
+              </div>
+
+              {/* 4 thumb-friendly CVA section buttons */}
+              <div className="hud-glass pointer-events-auto grid w-full max-w-md grid-cols-4 gap-1 rounded-2xl p-1.5 shadow-xl">
+                {SECTIONS.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    data-testid={`mobile-dock-${s.id}`}
+                    onClick={() => onSelectSection(s.id)}
+                    className="hud-btn flex flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-1.5 text-center"
+                    style={{
+                      backgroundColor: `${s.accent}26`,
+                      borderColor: `${s.accent}88`,
+                    }}
+                  >
+                    <span
+                      className="font-mono-num flex h-4.5 w-4.5 items-center justify-center rounded-full text-[10px] font-bold"
+                      style={{
+                        backgroundColor: s.accent,
+                        color: s.badgeText,
+                      }}
+                    >
+                      {s.n}
+                    </span>
+                    <span className="w-full truncate text-[10.5px] font-semibold text-[#fff1ee]">
+                      {s.name}
+                    </span>
+                    <span className="w-full truncate text-[9px] text-[#ffd9d0]/75">
+                      {s.owner}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+      </AnimatePresence>
     </main>
   );
 }
