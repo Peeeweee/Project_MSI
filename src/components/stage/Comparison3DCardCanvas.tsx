@@ -548,48 +548,16 @@ export function Comparison3DCardCanvas({
         </Suspense>
       </Canvas>
 
-      {/* Top-left 3D specimen badge & orbit hint */}
-      <div className="pointer-events-none absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-full border border-[#ffd9d0]/20 bg-[#1a0303]/85 px-2 py-0.5 text-[10px] font-semibold text-[#fff1ee] backdrop-blur-sm">
+      {/* Minimal top-left 3D specimen micro-tag */}
+      <div className="pointer-events-none absolute top-1.5 left-1.5 z-10 flex items-center gap-1 rounded-full border border-[#ffd9d0]/14 bg-[#160202]/65 px-1.5 py-0.5 text-[9px] font-medium text-[#ffd9d0]/85 backdrop-blur-xs">
         <span
           className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: section.accent }}
         />
-        <span>3D {specimen.label}</span>
-        <span className="text-[9px] text-[#ffd9d0]/60">· Drag to rotate</span>
+        <span>{specimen.label}</span>
       </div>
 
-      {/* Bottom-left active part HUD badge inside the 3D viewport */}
-      {selectedTag && (
-        <div className="pointer-events-none absolute inset-x-2 bottom-2 z-20 flex items-center justify-between gap-1.5 rounded-lg border border-[#ffd9d0]/22 bg-[#160202]/88 px-2 py-1 text-[10px] backdrop-blur-sm">
-          {(() => {
-            const activePart = parts.find((p) => p.tag === selectedTag);
-            if (!activePart) return null;
-            return (
-              <>
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span
-                    className="font-mono-num flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold"
-                    style={{
-                      backgroundColor: section.accent,
-                      color: section.badgeText,
-                    }}
-                  >
-                    {activePart.tag}
-                  </span>
-                  <span className="truncate font-semibold text-[#fff1ee]">
-                    {activePart.label}
-                  </span>
-                </div>
-                <span className="hidden shrink-0 text-[9px] text-[#ffd9d0]/70 sm:inline">
-                  {activePart.origin.split('·')[0]}
-                </span>
-              </>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Zero-portal 2D projected anatomical pins (A, B, C, D) tracked live to 3D bones */}
+      {/* Ultra-minimal surgical 3D pinpoint markers (6px dots unselected, 14px micro-pin selected) */}
       <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
         {parts.map((part: AnatomicalSubPart) => {
           const isSelected = selectedTag === part.tag;
@@ -611,20 +579,20 @@ export function Comparison3DCardCanvas({
                 top: 0,
                 opacity: 0,
                 zIndex: isSelected ? 30 : 12,
-                backgroundColor: isSelected
-                  ? '#fff1ee'
-                  : 'rgba(20, 3, 4, 0.88)',
-                borderColor: isSelected ? section.accent : `${section.accent}cc`,
-                color: isSelected ? '#240505' : '#fff1ee',
+                backgroundColor: isSelected ? '#fff1ee' : section.accent,
+                borderColor: isSelected ? section.accent : '#fff1ee',
+                color: isSelected ? '#240505' : 'transparent',
                 boxShadow: isSelected
-                  ? `0 0 0 3px ${section.accent}66, 0 0 16px ${section.accent}`
-                  : '0 3px 8px rgba(0,0,0,0.6)',
+                  ? `0 0 0 2px ${section.accent}55, 0 0 8px ${section.accent}`
+                  : '0 1px 4px rgba(0,0,0,0.65)',
               }}
-              className={`hud-btn absolute flex h-5 w-5 items-center justify-center rounded-full border-2 font-mono-num text-[9.5px] font-bold transition-colors ${
-                isSelected ? 'scale-125' : 'hover:scale-110'
+              className={`hud-btn absolute flex items-center justify-center rounded-full font-mono-num transition-all ${
+                isSelected
+                  ? 'h-3.5 w-3.5 border-[1.5px] text-[8px] font-extrabold'
+                  : 'h-2 w-2 border opacity-75 hover:h-3 hover:w-3 hover:opacity-100'
               }`}
             >
-              {part.tag}
+              {isSelected ? part.tag : null}
             </button>
           );
         })}
