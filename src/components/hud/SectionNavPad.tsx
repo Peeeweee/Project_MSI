@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowDown,
@@ -22,6 +22,7 @@ interface SectionNavPadProps {
   isCustomView: boolean;
   onPan: (dx: number, dy: number) => void;
   onSelectSubZone: (subZoneId: string | null) => void;
+  onFocusCardBbox?: (bbox: readonly [number, number, number, number]) => void;
   onPrevSubZone: () => void;
   onNextSubZone: () => void;
   onResetView: () => void;
@@ -47,6 +48,7 @@ export function SectionNavPad({
   isCustomView,
   onPan,
   onSelectSubZone,
+  onFocusCardBbox,
   onPrevSubZone,
   onNextSubZone,
   onResetView,
@@ -54,6 +56,7 @@ export function SectionNavPad({
   const prefersReducedMotion = useReducedMotion();
   const transition = pickTransition(HUD_SPRING, prefersReducedMotion);
 
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const holdTimerRef = useRef<number | null>(null);
   const pointerTriggeredRef = useRef(false);
   const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -73,6 +76,7 @@ export function SectionNavPad({
 
   // Keep active sub-part pill centered inside the horizontal bottom dock
   useEffect(() => {
+    setActiveCardId(null);
     if (!activeSubZoneId) return;
     const btn = pillRefs.current[activeSubZoneId];
     if (btn && typeof btn.scrollIntoView === 'function') {
@@ -130,82 +134,145 @@ export function SectionNavPad({
                 '--desktop-left': sidebarCollapsed ? '60px' : '256px',
               } as React.CSSProperties
             }
-            className="pointer-events-none fixed inset-x-2 top-[52px] z-30 flex justify-center px-1 lg:right-4 lg:left-[var(--desktop-left)]"
+            className="pointer-events-none fixed inset-x-2 top-[52px] z-30 flex flex-col items-center gap-1 px-1 lg:right-4 lg:left-[var(--desktop-left)]"
           >
             {activeSubZone ? (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="hud-glass pointer-events-auto flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 shadow-xl"
-                style={{
-                  borderColor: `${section.accent}66`,
-                  boxShadow: `0 12px 28px -8px rgba(10, 1, 1, 0.78), 0 0 18px -6px ${section.accent}44`,
-                }}
-              >
-                {/* 1-click Back to Full Section button */}
-                <button
-                  type="button"
-                  data-testid="subzone-back-to-section"
-                  onClick={() => onSelectSubZone(null)}
-                  className="hud-btn flex shrink-0 items-center gap-1 rounded-full bg-[#fff1ee] px-2.5 py-1 text-[11px] font-bold text-[#240505] shadow-sm hover:bg-[#ffd9d0]"
-                  title={`Zoom back out to full ${section.name} section (Esc)`}
+              <>
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="hud-glass pointer-events-auto flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 shadow-xl"
+                  style={{
+                    borderColor: `${section.accent}66`,
+                    boxShadow: `0 12px 28px -8px rgba(10, 1, 1, 0.78), 0 0 18px -6px ${section.accent}44`,
+                  }}
                 >
-                  <Minimize2 className="h-3 w-3" />
-                  <span>Full {section.name}</span>
-                </button>
-
-                <span
-                  aria-hidden="true"
-                  className="h-4 w-px shrink-0 bg-[#ffd9d0]/20"
-                />
-
-                {/* Prev Sub-Part */}
-                <button
-                  type="button"
-                  data-testid="subzone-prev-btn"
-                  onClick={onPrevSubZone}
-                  className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
-                  aria-label="Previous sub-part"
-                  title="Previous sub-part"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-
-                {/* Active Sub-Part Badge + Title + Counter */}
-                <div className="flex min-w-0 items-center gap-1.5 px-1">
-                  <span
-                    className="font-mono-num shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
-                    style={{
-                      backgroundColor: section.accent,
-                      color: section.badgeText,
-                    }}
+                  {/* 1-click Back to Full Section button */}
+                  <button
+                    type="button"
+                    data-testid="subzone-back-to-section"
+                    onClick={() => onSelectSubZone(null)}
+                    className="hud-btn flex shrink-0 items-center gap-1 rounded-full bg-[#fff1ee] px-2.5 py-1 text-[11px] font-bold text-[#240505] shadow-sm hover:bg-[#ffd9d0]"
+                    title={`Zoom back out to full ${section.name} section (Esc)`}
                   >
-                    {activeSubZone.code}
-                  </span>
-                  <div className="flex min-w-0 flex-col leading-tight">
-                    <span className="truncate text-[11.5px] font-semibold text-[#fff1ee]">
-                      {activeSubZone.label}
+                    <Minimize2 className="h-3 w-3" />
+                    <span>Full {section.name}</span>
+                  </button>
+
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-px shrink-0 bg-[#ffd9d0]/20"
+                  />
+
+                  {/* Prev Sub-Part */}
+                  <button
+                    type="button"
+                    data-testid="subzone-prev-btn"
+                    onClick={onPrevSubZone}
+                    className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
+                    aria-label="Previous sub-part"
+                    title="Previous sub-part"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+
+                  {/* Active Sub-Part Badge + Title + Counter */}
+                  <div className="flex min-w-0 items-center gap-1.5 px-1">
+                    <span
+                      className="font-mono-num shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: section.accent,
+                        color: section.badgeText,
+                      }}
+                    >
+                      {activeSubZone.code}
                     </span>
-                    <span className="hidden truncate text-[9.5px] text-[#ffd9d0]/75 sm:block">
-                      {activeSubZone.detail}
+                    <div className="flex min-w-0 flex-col leading-tight">
+                      <span className="truncate text-[11.5px] font-semibold text-[#fff1ee]">
+                        {activeSubZone.label}
+                      </span>
+                      <span className="hidden truncate text-[9.5px] text-[#ffd9d0]/75 sm:block">
+                        {activeSubZone.detail}
+                      </span>
+                    </div>
+                    <span className="font-mono-num hidden shrink-0 rounded bg-[#2a0707]/85 px-1.5 py-0.5 text-[9.5px] text-[#ffd9d0]/75 md:inline-block">
+                      {activeSubIndex + 1}/{section.subZones.length}
                     </span>
                   </div>
-                  <span className="font-mono-num hidden shrink-0 rounded bg-[#2a0707]/85 px-1.5 py-0.5 text-[9.5px] text-[#ffd9d0]/75 md:inline-block">
-                    {activeSubIndex + 1}/{section.subZones.length}
-                  </span>
+
+                  {/* Next Sub-Part */}
+                  <button
+                    type="button"
+                    data-testid="subzone-next-btn"
+                    onClick={onNextSubZone}
+                    className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
+                    aria-label="Next sub-part"
+                    title="Next sub-part"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
 
-                {/* Next Sub-Part */}
-                <button
-                  type="button"
-                  data-testid="subzone-next-btn"
-                  onClick={onNextSubZone}
-                  className="hud-btn flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#ffd9d0] hover:bg-[#fff1ee]/14 hover:text-[#fff1ee]"
-                  aria-label="Next sub-part"
-                  title="Next sub-part"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
+                {/* Level-3 Individual Animal Specimen Card Zoom Pills (e.g. Amphibians / Reptiles / Avians / Mammals / Ungulates) */}
+                {activeSubZone.cards && activeSubZone.cards.length > 0 && onFocusCardBbox && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="hud-glass pointer-events-auto flex items-center gap-1 rounded-full border border-[#ffd9d0]/20 px-2 py-0.5 text-[10.5px] shadow-lg"
+                  >
+                    <span className="px-1 text-[9.5px] font-semibold tracking-wider text-[#ffd9d0]/65 uppercase">
+                      Zoom Card:
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="subzone-card-all"
+                      onClick={() => {
+                        setActiveCardId(null);
+                        onSelectSubZone(activeSubZone.id);
+                      }}
+                      className={`hud-btn rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        activeCardId === null
+                          ? 'bg-[#fff1ee] text-[#240505]'
+                          : 'text-[#ffd9d0]/85 hover:bg-[#fff1ee]/12'
+                      }`}
+                    >
+                      All ({activeSubZone.cards.length})
+                    </button>
+                    {activeSubZone.cards.map((card) => {
+                      const isCardActive = activeCardId === card.id;
+                      return (
+                        <button
+                          key={card.id}
+                          type="button"
+                          data-testid={`subzone-card-${card.id}`}
+                          onClick={() => {
+                            if (isCardActive) {
+                              setActiveCardId(null);
+                              onSelectSubZone(activeSubZone.id);
+                            } else {
+                              setActiveCardId(card.id);
+                              onFocusCardBbox(card.bbox);
+                            }
+                          }}
+                          className={`hud-btn rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            isCardActive
+                              ? 'shadow-sm'
+                              : 'text-[#ffd9d0]/90 hover:bg-[#fff1ee]/12'
+                          }`}
+                          style={
+                            isCardActive
+                              ? {
+                                  backgroundColor: section.accent,
+                                  color: section.badgeText,
+                                }
+                              : undefined
+                          }
+                        >
+                          {card.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             ) : (
               /* Subtle Level-1 helper pill letting users know they can click any numbered sub-part on the poster */
               <div
