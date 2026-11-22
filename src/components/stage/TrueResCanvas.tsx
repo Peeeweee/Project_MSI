@@ -23,6 +23,7 @@ interface TrueResCanvasProps {
 }
 
 const ORIGINAL_LOSSLESS_PNG = './assets/CVA-Muscular-System-Original.png';
+const SUBPART_CACHE_VER = '?v=7';
 
 // Shared in-memory cache of decoded Image elements so images never reload across re-renders
 const imageCache = new Map<string, HTMLImageElement>();
@@ -193,7 +194,7 @@ export function TrueResCanvas({
       );
 
       for (const subZone of orderedSubZones) {
-        const subSrc = `./assets/subparts/${subZone.id}.webp`;
+        const subSrc = `./assets/subparts/${subZone.id}.webp${SUBPART_CACHE_VER}`;
         const subImg = loadImageCached(subSrc, triggerRedraw);
         if (subImg) {
           const [x1, y1, x2, y2] = subZone.bbox;
@@ -302,7 +303,7 @@ export function TrueResCanvas({
     const section = SECTION_BY_ID[activeSectionId];
     loadImageCached(section.cropSrc, scheduleDraw);
     for (const subZone of section.subZones) {
-      loadImageCached(`./assets/subparts/${subZone.id}.webp`, scheduleDraw);
+      loadImageCached(`./assets/subparts/${subZone.id}.webp${SUBPART_CACHE_VER}`, scheduleDraw);
     }
     loadImageCached(ORIGINAL_LOSSLESS_PNG, scheduleDraw);
   }, [activeSectionId, scheduleDraw]);
