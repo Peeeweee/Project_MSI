@@ -4,7 +4,11 @@ import { Html, OrbitControls, useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { SkeletonUtils, type OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { SECTION_BY_ID, SECTIONS, type SectionId } from '../../data/sections';
-import type { AnatomicalSubPart, VertebrateSpecimen } from '../../data/vertebrates';
+import {
+  VERTEBRATES,
+  type AnatomicalSubPart,
+  type VertebrateSpecimen,
+} from '../../data/vertebrates';
 import type { CameraAnglePreset } from './MuscleModelScene';
 
 export interface AnimalSpecimenSceneProps {
@@ -43,7 +47,7 @@ export function AnimalSpecimenScene({
   onUserOrbitStart,
 }: AnimalSpecimenSceneProps) {
   const { scene: rawScene, animations } = useGLTF(specimen.modelUrl);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
   const rigRef = useRef<THREE.Group | null>(null);
   const floatRef = useRef<THREE.Group | null>(null);
@@ -228,12 +232,19 @@ export function AnimalSpecimenScene({
       yawDeg = 90;
     }
 
+    const aspect = size.width / Math.max(1, size.height);
+    const portraitScale =
+      aspect < 0.95
+        ? Math.min(2.05, Math.max(1.18, 1.04 / Math.max(0.42, aspect)))
+        : 1;
+    const effectiveDist = dist * portraitScale;
+
     const rad = (yawDeg * Math.PI) / 180;
     goalTargetRef.current.set(targetX, targetY, targetZ);
     goalPosRef.current.set(
-      targetX + Math.sin(rad) * dist,
+      targetX + Math.sin(rad) * effectiveDist,
       targetY + elev,
-      targetZ + Math.cos(rad) * dist,
+      targetZ + Math.cos(rad) * effectiveDist,
     );
 
     if (reducedMotion) {
@@ -255,6 +266,8 @@ export function AnimalSpecimenScene({
     modelCenterY,
     reducedMotion,
     resetTrigger,
+    size.height,
+    size.width,
     specimen,
   ]);
 
@@ -468,7 +481,10 @@ export function AnimalSpecimenScene({
         activeSection &&
         activeParts.map((part) => {
           const isSelected = selectedSubPartId === part.id;
-          const [dx, dy] = part.calloutShift;
+          const isCompact = size.width < 640;
+          const shiftScale = isCompact ? 0.32 : 1;
+          const dx = Math.round(part.calloutShift[0] * shiftScale);
+          const dy = Math.round(part.calloutShift[1] * shiftScale);
           const alignLeft = dx < 0;
 
           return (
@@ -535,9 +551,11 @@ export function AnimalSpecimenScene({
                     style={{
                       left: `${dx}px`,
                       top: `${dy}px`,
-                      transform: alignLeft
-                        ? 'translate(-100%, -50%)'
-                        : 'translate(0%, -50%)',
+                      transform: isCompact
+                        ? 'translate(-50%, -50%)'
+                        : alignLeft
+                          ? 'translate(-100%, -50%)'
+                          : 'translate(0%, -50%)',
                       backgroundColor: isSelected
                         ? 'rgba(46, 8, 10, 0.96)'
                         : 'rgba(26, 4, 5, 0.88)',
@@ -548,10 +566,14 @@ export function AnimalSpecimenScene({
                         ? `0 0 18px ${activeSection.accent}88`
                         : '0 6px 16px rgba(0,0,0,0.45)',
                     }}
-                    className="pointer-events-auto absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border py-0.5 pl-1 pr-2.5 text-[11px] font-semibold text-[#fff1ee] backdrop-blur-md transition-transform hover:scale-[1.04]"
+                    className={`pointer-events-auto absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border py-0.5 text-[11px] font-semibold text-[#fff1ee] backdrop-blur-md transition-transform hover:scale-[1.04] ${
+                      isCompact && !isSelected
+                        ? 'px-0.5'
+                        : 'pl-1 pr-2.5'
+                    }`}
                   >
                     <span
-                      className="font-mono-num flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold"
+                      className="font-mono-num flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold sm:h-4 sm:w-4 sm:text-[9px]"
                       style={{
                         backgroundColor: isSelected
                           ? '#fff1ee'
@@ -563,7 +585,13 @@ export function AnimalSpecimenScene({
                     >
                       {part.tag}
                     </span>
-                    <span className="font-display tracking-wide">
+                    <span
+                      className={`font-display tracking-wide ${
+                        isCompact && !isSelected
+                          ? 'hidden'
+                          : 'max-w-[130px] truncate sm:max-w-none'
+                      }`}
+                    >
                       {part.label}
                     </span>
                   </button>
@@ -582,7 +610,7 @@ export function AnimalSpecimenScene({
         zoomSpeed={0.9}
         panSpeed={0.75}
         minDistance={2.2}
-        maxDistance={14.5}
+        maxDistance={18.5}
         minPolarAngle={0.18}
         maxPolarAngle={Math.PI - 0.22}
         autoRotate={autoOrbit && !reducedMotion}
@@ -594,4 +622,10 @@ export function AnimalSpecimenScene({
       />
     </>
   );
+}
+
+for (const v of VERTEBRATES) {
+  if (v.id !== 'human') {
+    useGLTF.preload(v.modelUrl);
+  }
 }
