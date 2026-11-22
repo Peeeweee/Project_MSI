@@ -191,7 +191,7 @@ export function QrShareModal({
                 style={{ backgroundColor: entry.accent }}
               />
 
-              <div className="p-5">
+              <div className="touch-scroll-y max-h-[86dvh] overflow-y-auto p-4 sm:p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
