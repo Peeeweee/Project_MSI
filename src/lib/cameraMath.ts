@@ -21,7 +21,7 @@ export interface BaseStageMetrics {
 }
 
 export const MIN_SCALE = 1;
-export const MAX_SCALE = 5.8;
+export const MAX_SCALE = 7.5;
 export const SIDEBAR_WIDTH_COLLAPSED = 56;
 export const SIDEBAR_WIDTH_DESKTOP = 248;
 /** Breakpoint separating desktop left sidebar (>= 1024px) from tablet/mobile bottom sheet */
