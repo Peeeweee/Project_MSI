@@ -1,4 +1,4 @@
-const CACHE_NAME = 'project-msi-offline-v8';
+const CACHE_NAME = 'project-msi-offline-v10';
 
 const CORE_SHELL_URLS = [
   './',
