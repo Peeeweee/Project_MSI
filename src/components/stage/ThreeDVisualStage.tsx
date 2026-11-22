@@ -151,6 +151,7 @@ export function ThreeDVisualStage({
   const [animalWireframe, setAnimalWireframe] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [mobilePlatesOpen, setMobilePlatesOpen] = useState(false);
   const [selectedSubPartId, setSelectedSubPartId] = useState<string | null>(null);
   const [activeAnimation, setActiveAnimation] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(!prefersReducedMotion);
@@ -595,11 +596,11 @@ export function ThreeDVisualStage({
         />
 
         {/* Top-Center Comparative Vertebrate Specimen Switcher */}
-        <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-3">
+        <div className="pointer-events-none absolute inset-x-0 top-2.5 z-30 flex justify-center px-2 sm:top-3 sm:px-3">
           <div
             role="group"
             aria-label="Select 3D vertebrate specimen"
-            className="hud-glass pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full p-1"
+            className="hud-glass touch-scroll-x pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full p-1"
           >
             {VERTEBRATES.map((v) => {
               const active = v.id === vertebrateId;
@@ -663,8 +664,8 @@ export function ThreeDVisualStage({
               }}
               style={{ width: '100%', height: '100%', touchAction: 'none' }}
             >
-              <Suspense fallback={null}>
-                {isHuman ? (
+              {isHuman ? (
+                <Suspense key="human-suspense" fallback={null}>
                   <MuscleModelScene
                     key="human-muscle-scene"
                     activeSectionId={activeId}
@@ -682,7 +683,9 @@ export function ThreeDVisualStage({
                     onSelectSubPart={handleSelectSubPart}
                     onUserOrbitStart={() => setAutoOrbit(false)}
                   />
-                ) : (
+                </Suspense>
+              ) : (
+                <Suspense key={`animal-suspense-${specimen.id}`} fallback={null}>
                   <AnimalSpecimenScene
                     key={`animal-scene-${specimen.id}`}
                     specimen={specimen}
@@ -700,14 +703,52 @@ export function ThreeDVisualStage({
                     onSelectSubPart={handleSelectSubPart}
                     onUserOrbitStart={() => setAutoOrbit(false)}
                   />
-                )}
-              </Suspense>
+                </Suspense>
+              )}
             </Canvas>
           </WebGLErrorBoundary>
         </div>
 
-        {/* Context-Aware Bottom Floating 3D Controls Bar */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center px-3">
+        {/* Context-Aware Bottom Floating 3D Controls Bar + Mobile Sub-Part Chips */}
+        <div className="pb-safe pointer-events-none absolute inset-x-0 bottom-2 z-30 flex flex-col items-center gap-1.5 px-2 sm:bottom-3 sm:px-3">
+          {/* Mobile (<1024px) Quick Anatomical Sub-Part Selector Chips (A, B, C, D) when a section is active */}
+          {!isDesktop && activeCallout && activeSection && (
+            <div className="hud-glass touch-scroll-x pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-full px-2 py-1 shadow-lg">
+              <span
+                className="font-mono-num shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                style={{
+                  backgroundColor: activeSection.accent,
+                  color: activeSection.badgeText,
+                }}
+              >
+                {activeSection.n} · {activeSection.name}
+              </span>
+              {activeCallout.parts.map((part) => {
+                const isSel = selectedSubPartId === part.id;
+                return (
+                  <button
+                    key={part.id}
+                    type="button"
+                    onClick={() => handleSelectSubPart(part)}
+                    className="hud-btn flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold"
+                    style={{
+                      backgroundColor: isSel
+                        ? activeSection.accent
+                        : 'rgba(255, 241, 238, 0.08)',
+                      borderColor: isSel
+                        ? activeSection.accent
+                        : 'rgba(255, 217, 208, 0.2)',
+                      color: isSel ? activeSection.badgeText : '#fff1ee',
+                    }}
+                  >
+                    <span className="font-mono-num font-bold">{part.tag}.</span>
+                    <span className="max-w-[120px] truncate">{part.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div className="hud-glass pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full px-2.5 py-1.5">
             <button
               type="button"
@@ -901,6 +942,28 @@ export function ThreeDVisualStage({
               <RotateCcw className="h-3 w-3" />
             </button>
 
+            {/* Mobile (<1024px) toggle for Poster Specimen Plates drawer */}
+            {!isDesktop && activeSection && (
+              <button
+                type="button"
+                data-testid="3d-mobile-plates-toggle"
+                aria-pressed={mobilePlatesOpen}
+                onClick={() => setMobilePlatesOpen((o) => !o)}
+                className="hud-btn inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10.5px] font-semibold"
+                style={{
+                  backgroundColor: mobilePlatesOpen
+                    ? activeSection.accent
+                    : 'rgba(255, 241, 238, 0.1)',
+                  borderColor: activeSection.accent,
+                  color: mobilePlatesOpen
+                    ? activeSection.badgeText
+                    : '#fff1ee',
+                }}
+              >
+                <span>Plates ({activeSpecimens.length})</span>
+              </button>
+            )}
+
             <span
               aria-hidden="true"
               className="hidden h-4 w-px bg-[#ffd9d0]/18 sm:block"
@@ -922,9 +985,9 @@ export function ThreeDVisualStage({
         </div>
       </div>
 
-      {/* Right Rail (Desktop) / Bottom Strip (Mobile): Poster Specimen Plates linked to 3D Animals */}
+      {/* Right Rail (Desktop) / Collapsible Drawer (Mobile): Poster Specimen Plates linked to 3D Animals */}
       <AnimatePresence>
-        {activeSection && (
+        {activeSection && (isDesktop || mobilePlatesOpen) && (
           <motion.aside
             key={`specimen-rail-${activeSection.id}`}
             data-testid="three-d-specimen-rail"
@@ -941,7 +1004,7 @@ export function ThreeDVisualStage({
               y: isDesktop ? 0 : 24,
             }}
             transition={CARD_SPRING}
-            className="hud-glass z-20 flex shrink-0 flex-col border-t border-[#ffd9d0]/18 p-3.5 lg:w-[356px] lg:border-l lg:border-t-0 lg:p-4"
+            className="hud-glass pb-safe z-30 flex shrink-0 flex-col border-t border-[#ffd9d0]/18 p-3 lg:z-20 lg:w-[356px] lg:border-l lg:border-t-0 lg:p-4"
           >
             {/* Section Header */}
             <div className="flex items-start justify-between gap-2">
@@ -1000,7 +1063,7 @@ export function ThreeDVisualStage({
                   transition: { staggerChildren: 0.07, delayChildren: 0.04 },
                 },
               }}
-              className="mt-3 flex gap-2.5 overflow-x-auto pb-1 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden"
+              className="touch-scroll-x lg:touch-scroll-y mt-2.5 flex gap-2.5 overflow-x-auto pb-1 lg:mt-3 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden"
             >
               {activeSpecimens.map((spec) => {
                 const suggestedIds =
